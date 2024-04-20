@@ -14,6 +14,7 @@ replace k8s.io/client-go => k8s.io/client-go v0.18.8
 require (
 	cloud.google.com/go/storage v1.14.0
 	cuelang.org/go v0.3.2
+	gitee.com/travelliu/dm v1.8.11192
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v0.16.1
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v0.9.1
 	github.com/BurntSushi/toml v0.3.1
@@ -124,4 +125,4 @@ replace github.com/apache/thrift => github.com/apache/thrift v0.14.1
 
 replace gopkg.in/macaron.v1 => ./pkg/macaron
 
-replace xorm.io/xorm => github.com/positivelong/xorm v0.8.104
+replace xorm.io/xorm v0.8.2 => github.com/positivelong/xorm v0.8.104

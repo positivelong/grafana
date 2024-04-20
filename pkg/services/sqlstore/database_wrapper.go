@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"gitee.com/travelliu/dm"
 	"github.com/gchaincl/sqlhooks"
 	"github.com/go-sql-driver/mysql"
 	"github.com/grafana/grafana/pkg/infra/log"
@@ -44,6 +45,7 @@ func WrapDatabaseDriverWithHooks(dbType string) string {
 		migrator.SQLite:   &sqlite3.SQLiteDriver{},
 		migrator.MySQL:    &mysql.MySQLDriver{},
 		migrator.Postgres: &pq.Driver{},
+		migrator.Dameng:   &dm.DmDriver{},
 	}
 
 	d, exist := drivers[dbType]
