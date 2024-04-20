@@ -2,10 +2,9 @@ package sqlstore
 
 import (
 	"fmt"
+	"xorm.io/xorm/core"
 
 	glog "github.com/grafana/grafana/pkg/infra/log"
-
-	"xorm.io/core"
 )
 
 type XormLogger struct {

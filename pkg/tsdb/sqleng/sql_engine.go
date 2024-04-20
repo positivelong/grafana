@@ -21,8 +21,8 @@ import (
 	"github.com/grafana/grafana/pkg/plugins"
 	"github.com/grafana/grafana/pkg/tsdb/interval"
 	"github.com/grafana/grafana/pkg/util/errutil"
-	"xorm.io/core"
 	"xorm.io/xorm"
+	"xorm.io/xorm/core"
 )
 
 // MetaKeyExecutedQueryString is the key where the executed query should get stored
