@@ -45,7 +45,7 @@ func WrapDatabaseDriverWithHooks(dbType string) string {
 		migrator.SQLite:   &sqlite3.SQLiteDriver{},
 		migrator.MySQL:    &mysql.MySQLDriver{},
 		migrator.Postgres: &pq.Driver{},
-		migrator.Dameng:   &dm.DmDriver{},
+		migrator.DM:       &dm.DmDriver{},
 	}
 
 	d, exist := drivers[dbType]
