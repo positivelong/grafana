@@ -238,3 +238,33 @@ func (db *DmDialect) UpsertSQL(tableName string, keyCols, updateCols []string) s
 	)
 	return s
 }
+
+func (b *DmDialect) ColString(col *Column) string {
+	sql := b.dialect.Quote(col.Name) + " "
+
+	sql += b.dialect.SQLType(col) + " "
+
+	if col.IsPrimaryKey {
+		sql += "PRIMARY KEY "
+		if col.IsAutoIncrement {
+			sql += b.dialect.AutoIncrStr() + " "
+		}
+	}
+
+	if b.dialect.ShowCreateNull() {
+		if col.IsPrimaryKey {
+			return sql
+		}
+		if col.Nullable {
+			sql += "NULL "
+		} else {
+			sql += "NOT NULL "
+		}
+	}
+
+	if col.Default != "" {
+		sql += "DEFAULT " + b.dialect.Default(col) + " "
+	}
+
+	return sql
+}
