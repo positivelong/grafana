@@ -6,6 +6,7 @@ import (
 	"gitee.com/travelliu/dm"
 	"strconv"
 	"strings"
+	"xorm.io/xorm/core"
 
 	_ "gitee.com/travelliu/dm"
 	"github.com/grafana/grafana/pkg/util/errutil"
@@ -49,50 +50,64 @@ func (db *DmDialect) BooleanStr(value bool) string {
 
 func (db *DmDialect) SQLType(c *Column) string {
 	var res string
-	switch c.Type {
-	case DB_Bool:
-		res = DB_Bit
-		c.Length = 1
-	case DB_Serial:
-		c.IsAutoIncrement = true
-		c.IsPrimaryKey = true
-		c.Nullable = false
-		res = DB_BigInt
-	case DB_BigSerial:
-		c.IsAutoIncrement = true
-		c.IsPrimaryKey = true
-		c.Nullable = false
-		res = DB_BigInt
-	case DB_Bytea:
-		res = DB_Blob
-	case DB_TimeStampz:
-		res = DB_Char
-		c.Length = 64
-	case DB_NVarchar:
-		res = DB_Varchar
+	switch t := c.Type; t {
+	case core.TinyInt, "BYTE":
+		return "TINYINT"
+	case core.SmallInt, core.MediumInt, core.Int, core.Integer, core.UnsignedTinyInt:
+		return "INTEGER"
+	case core.BigInt,
+		core.UnsignedBigInt, core.UnsignedBit, core.UnsignedInt,
+		core.Serial, core.BigSerial:
+		return "BIGINT"
+	case core.Bit, core.Bool, core.Boolean:
+		return core.Bit
+	case core.Uuid:
+		res = core.Varchar
+		c.Length = 40
+	case core.Binary:
+		if c.Length == 0 {
+			return core.Binary + "(MAX)"
+		}
+	case core.VarBinary, core.Blob, core.TinyBlob, core.MediumBlob, core.LongBlob, core.Bytea:
+		return core.VarBinary
+	case core.Date:
+		return core.Date
+	case core.Time:
+		if c.Length > 0 {
+			return fmt.Sprintf("%s(%d)", core.Time, c.Length)
+		}
+		return core.Time
+	case core.DateTime, core.TimeStamp:
+		res = core.TimeStamp
+	case core.TimeStampz:
+		if c.Length > 0 {
+			return fmt.Sprintf("TIMESTAMP(%d) WITH TIME ZONE", c.Length)
+		}
+		return "TIMESTAMP WITH TIME ZONE"
+	case core.Float:
+		res = "FLOAT"
+	case core.Real, core.Double:
+		res = "REAL"
+	case core.Numeric, core.Decimal, "NUMBER":
+		res = "NUMERIC"
+	case core.Text, core.Json:
+		return "TEXT"
+	case core.MediumText, core.LongText:
+		res = "CLOB"
+	case core.Char, core.Varchar, core.TinyText:
+		res = "VARCHAR2"
 	default:
-		res = c.Type
+		res = t
 	}
 
-	var hasLen1 = (c.Length > 0)
-	var hasLen2 = (c.Length2 > 0)
-
-	if res == DB_BigInt && !hasLen1 && !hasLen2 {
-		c.Length = 20
-		hasLen1 = true
-	}
+	hasLen1 := c.Length > 0
+	hasLen2 := c.Length2 > 0
 
 	if hasLen2 {
 		res += "(" + strconv.Itoa(c.Length) + "," + strconv.Itoa(c.Length2) + ")"
 	} else if hasLen1 {
 		res += "(" + strconv.Itoa(c.Length) + ")"
 	}
-
-	switch c.Type {
-	case DB_Char, DB_Varchar, DB_NVarchar, DB_TinyText, DB_Text, DB_MediumText, DB_LongText:
-		res += " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-	}
-
 	return res
 }
 
