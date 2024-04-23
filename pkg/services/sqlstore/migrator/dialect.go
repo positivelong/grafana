@@ -64,6 +64,7 @@ var supportedDialects = map[string]dialectFunc{
 	MySQL + "WithHooks":    NewMysqlDialect,
 	SQLite + "WithHooks":   NewSQLite3Dialect,
 	Postgres + "WithHooks": NewPostgresDialect,
+	DM + "WithHooks":       NewDmDialect,
 }
 
 func NewDialect(engine *xorm.Engine) Dialect {
@@ -284,7 +285,7 @@ func (b *BaseDialect) TruncateDBTables() error {
 	return nil
 }
 
-//UpsertSQL returns empty string
+// UpsertSQL returns empty string
 func (b *BaseDialect) UpsertSQL(tableName string, keyCols, updateCols []string) string {
 	return ""
 }
