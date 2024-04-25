@@ -279,7 +279,8 @@ func (b *BaseDialect) CleanDB() error {
 }
 
 func (b *BaseDialect) NoOpSQL() string {
-	return "SELECT 0;"
+
+	return fmt.Sprintf("set schema %s;", b.dialect.Quote(b.engine.Dialect().URI().Schema))
 }
 
 func (b *BaseDialect) TruncateDBTables() error {

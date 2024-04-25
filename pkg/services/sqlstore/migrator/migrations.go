@@ -74,6 +74,10 @@ func (m *RawSQLMigration) Postgres(sql string) *RawSQLMigration {
 	return m.Set(Postgres, sql)
 }
 
+func (m *RawSQLMigration) DM(sql string) *RawSQLMigration {
+	return m.Set(DM, sql)
+}
+
 func (m *RawSQLMigration) Mssql(sql string) *RawSQLMigration {
 	return m.Set(MSSQL, sql)
 }

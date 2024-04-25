@@ -271,7 +271,7 @@ func (ss *SQLStore) buildConnectionString() (string, error) {
 		cnnstr = fmt.Sprintf("file:%s?cache=%s&mode=rwc", ss.dbCfg.Path, ss.dbCfg.CacheMode)
 		cnnstr += ss.buildExtraConnectionString('&')
 	case migrator.DM:
-		cnnstr = fmt.Sprintf("dm://%s:%s@%s?shema=%s", ss.dbCfg.User, ss.dbCfg.Pwd, ss.dbCfg.Host, ss.dbCfg.Name)
+		cnnstr = fmt.Sprintf("dm://%s:%s@%s?schema=%s", ss.dbCfg.User, ss.dbCfg.Pwd, ss.dbCfg.Host, ss.dbCfg.Name)
 		cnnstr += ss.buildExtraConnectionString('&')
 		fmt.Printf("%v", ss.dbCfg)
 		fmt.Printf("cnnstr==%s\n", cnnstr)
