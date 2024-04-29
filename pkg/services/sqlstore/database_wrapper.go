@@ -6,6 +6,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"gitee.com/travelliu/dm"
 	"time"
 
 	"github.com/gchaincl/sqlhooks"
@@ -15,7 +16,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"xorm.io/core"
+	"xorm.io/xorm/core"
 
 	"github.com/grafana/grafana/pkg/infra/log"
 	"github.com/grafana/grafana/pkg/infra/tracing"
@@ -45,6 +46,7 @@ func WrapDatabaseDriverWithHooks(dbType string, tracer tracing.Tracer) string {
 		migrator.SQLite:   &sqlite3.SQLiteDriver{},
 		migrator.MySQL:    &mysql.MySQLDriver{},
 		migrator.Postgres: &pq.Driver{},
+		migrator.DM:       &dm.DmDriver{},
 	}
 
 	d, exist := drivers[dbType]
@@ -133,7 +135,7 @@ func (h *databaseQueryWrapper) OnError(ctx context.Context, err error, query str
 	return err
 }
 
-// databaseQueryWrapperDriver satisfies the xorm.io/core.Driver interface
+// databaseQueryWrapperDriver satisfies the xorm.io/xorm/core.Driver interface
 type databaseQueryWrapperDriver struct {
 	dbType string
 }

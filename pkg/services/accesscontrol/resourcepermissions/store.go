@@ -308,7 +308,7 @@ func (s *store) getResourcePermissions(sess *db.Session, orgID int64, query GetR
 
 	userSelect := rawSelect + `
 		ur.user_id AS user_id,
-		u.login AS user_login,
+		u."login" AS user_login,
 		u.is_service_account AS is_service_account,
 		u.email AS user_email,
 		0 AS team_id,
@@ -634,7 +634,7 @@ func (s *store) getPermissions(sess *db.Session, resource, resourceID, resourceA
 	SELECT
 		p.*,
 		ur.user_id AS user_id,
-		u.login AS user_login,
+		"login" AS user_login,
 		u.email AS user_email,
 		tr.team_id AS team_id,
 		t.name AS team,

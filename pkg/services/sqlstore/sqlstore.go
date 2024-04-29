@@ -15,8 +15,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/prometheus/client_golang/prometheus"
-	"xorm.io/core"
 	"xorm.io/xorm"
+	"xorm.io/xorm/core"
 
 	"github.com/grafana/grafana/pkg/bus"
 	"github.com/grafana/grafana/pkg/infra/fs"
@@ -132,7 +132,11 @@ func newSQLStore(cfg *setting.Cfg, engine *xorm.Engine,
 	}
 
 	ss.Dialect = migrator.NewDialect(ss.engine.DriverName())
-
+	if ss.dbCfg.Type == migrator.DM {
+		if d, ok := ss.Dialect.(*migrator.DmDialect); ok {
+			d.Schema = ss.engine.Dialect().URI().Schema
+		}
+	}
 	// if err := ss.Reset(); err != nil {
 	// 	return nil, err
 	// }
@@ -266,6 +270,7 @@ func (ss *SQLStore) initEngine(engine *xorm.Engine) error {
 	}
 
 	ss.log.Info("Connecting to DB", "dbtype", ss.dbCfg.Type)
+	ss.log.Info("conn_str:", ss.dbCfg.ConnectionString)
 	if ss.dbCfg.Type == migrator.SQLite && strings.HasPrefix(ss.dbCfg.ConnectionString, "file:") &&
 		!strings.HasPrefix(ss.dbCfg.ConnectionString, "file::memory:") {
 		exists, err := fs.Exists(ss.dbCfg.Path)

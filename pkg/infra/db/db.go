@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"xorm.io/core"
 	"xorm.io/xorm"
+	"xorm.io/xorm/core"
 
 	"github.com/grafana/grafana/pkg/services/sqlstore"
 	"github.com/grafana/grafana/pkg/services/sqlstore/migrator"

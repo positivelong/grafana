@@ -50,9 +50,9 @@ func (ss *SQLStore) createUser(ctx context.Context, sess *DBSession, args user.C
 		args.Email = args.Login
 	}
 
-	where := "email=? OR login=?"
+	where := `email=? OR "login"=?`
 	if ss.Cfg.CaseInsensitiveLogin {
-		where = "LOWER(email)=LOWER(?) OR LOWER(login)=LOWER(?)"
+		where = `LOWER(email)=LOWER(?) OR LOWER("login")=LOWER(?)`
 		args.Login = strings.ToLower(args.Login)
 		args.Email = strings.ToLower(args.Email)
 	}

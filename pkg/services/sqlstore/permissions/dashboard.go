@@ -160,7 +160,7 @@ func (f *accessControlDashboardPermissionFilter) buildClauses() {
 					args = append(args, toCheck...)
 					args = append(args, len(toCheck))
 				}
-				builder.WriteString(") AND NOT dashboard.is_folder)")
+				builder.WriteString(") AND NOT dashboard.is_folder = 1)")
 			} else {
 				actions := parseStringSliceFromInterfaceSlice(toCheck)
 
@@ -169,7 +169,7 @@ func (f *accessControlDashboardPermissionFilter) buildClauses() {
 				// Only add the IN clause if we have any dashboards to check
 				if len(args) > 0 {
 					builder.WriteString("(dashboard.uid IN (?" + strings.Repeat(", ?", len(args)-1) + "")
-					builder.WriteString(") AND NOT dashboard.is_folder)")
+					builder.WriteString(") AND NOT dashboard.is_folder = 1)")
 				} else {
 					builder.WriteString("(1 = 0)")
 				}
@@ -235,14 +235,14 @@ func (f *accessControlDashboardPermissionFilter) buildClauses() {
 					builder.WriteString("WHERE 1 = 0")
 				}
 			}
-			builder.WriteString(") AND NOT dashboard.is_folder)")
+			builder.WriteString(") AND NOT dashboard.is_folder = 1)")
 
 			// Include all the dashboards under the root if the user has the required permissions on the root (used to be the General folder)
 			if hasAccessToRoot(toCheck, f.user) {
-				builder.WriteString(" OR (dashboard.folder_id = 0 AND NOT dashboard.is_folder)")
+				builder.WriteString(" OR (dashboard.folder_id = 0 AND NOT dashboard.is_folder =1)")
 			}
 		} else {
-			builder.WriteString("NOT dashboard.is_folder")
+			builder.WriteString("NOT dashboard.is_folder = 1")
 		}
 	}
 
@@ -311,9 +311,9 @@ func (f *accessControlDashboardPermissionFilter) buildClauses() {
 					builder.WriteString("(1 = 0")
 				}
 			}
-			builder.WriteString(" AND dashboard.is_folder)")
+			builder.WriteString(" AND dashboard.is_folder = 1)")
 		} else {
-			builder.WriteString("dashboard.is_folder")
+			builder.WriteString("dashboard.is_folder = 1")
 		}
 	}
 

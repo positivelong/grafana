@@ -115,7 +115,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // @grafana/alerting-squad-backend
 	xorm.io/builder v0.3.6 // indirect; @grafana/backend-platform
-	xorm.io/core v0.7.3 // @grafana/backend-platform
 	xorm.io/xorm v0.8.2 // @grafana/alerting-squad-backend
 )
 
@@ -454,6 +453,7 @@ require (
 	cloud.google.com/go/auth v0.7.2 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.3 // indirect
 	cloud.google.com/go/longrunning v0.5.11 // indirect
+	gitee.com/travelliu/dm v1.8.11192 // indirect
 	github.com/bufbuild/protocompile v0.4.0 // indirect
 	github.com/docker/docker v28.0.1+incompatible // indirect
 	github.com/gobuffalo/pop/v6 v6.1.1 // indirect
@@ -497,3 +497,4 @@ replace github.com/prometheus/alertmanager => github.com/grafana/prometheus-aler
 exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
 
 replace github.com/go-sql-driver/mysql => github.com/go-sql-driver/mysql v1.7.1
+replace xorm.io/xorm v0.8.2 => github.com/positivelong/xorm v0.8.4

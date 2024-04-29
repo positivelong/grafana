@@ -30,9 +30,9 @@ const (
 	selectLibraryElementDTOWithMeta = `
 SELECT DISTINCT
 	le.name, le.id, le.org_id, le.folder_id, le.uid, le.kind, le.type, le.description, le.model, le.created, le.created_by, le.updated, le.updated_by, le.version
-	, u1.login AS created_by_name
+	, u1."login" AS created_by_name
 	, u1.email AS created_by_email
-	, u2.login AS updated_by_name
+	, u2."login" AS updated_by_name
 	, u2.email AS updated_by_email
 	, (SELECT COUNT(connection_id) FROM ` + model.LibraryElementConnectionTableName + ` WHERE element_id = le.id AND kind=1) AS connected_dashboards`
 )
@@ -688,7 +688,7 @@ func (l *LibraryElementService) getConnections(c context.Context, signedInUser i
 		}
 		var libraryElementConnections []model.LibraryElementConnectionWithMeta
 		builder := db.NewSqlBuilder(l.Cfg, l.features, l.SQLStore.GetDialect(), recursiveQueriesAreSupported)
-		builder.Write("SELECT lec.*, u1.login AS created_by_name, u1.email AS created_by_email, dashboard.uid AS connection_uid")
+		builder.Write(`SELECT lec.*, u1."login" AS created_by_name, u1.email AS created_by_email, dashboard.uid AS connection_uid`)
 		builder.Write(" FROM " + model.LibraryElementConnectionTableName + " AS lec")
 		builder.Write(" LEFT JOIN " + l.SQLStore.GetDialect().Quote("user") + " AS u1 ON lec.created_by = u1.id")
 		builder.Write(" INNER JOIN dashboard AS dashboard on lec.connection_id = dashboard.id")
