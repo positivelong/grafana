@@ -65,3 +65,18 @@ func MSSQLTestDB() TestDB {
 		ConnStr:    fmt.Sprintf("server=%s;port=%s;database=grafanatest;user id=grafana;password=Password!", host, port),
 	}
 }
+
+func DMTestDB() TestDB {
+	host := os.Getenv("MSSQL_HOST")
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	port := os.Getenv("MSSQL_PORT")
+	if port == "" {
+		port = "5236"
+	}
+	return TestDB{
+		DriverName: "dm",
+		ConnStr:    fmt.Sprintf("dm://SYSDBA:SYSDBA001@%s:%s?schema=grafana", host, port),
+	}
+}

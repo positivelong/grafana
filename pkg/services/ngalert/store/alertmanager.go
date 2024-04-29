@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"xorm.io/builder"
-	"xorm.io/core"
+	"xorm.io/xorm/core"
 
 	"github.com/grafana/grafana/pkg/services/ngalert/models"
 	"github.com/grafana/grafana/pkg/services/sqlstore"
@@ -141,66 +141,66 @@ func getInsertQuery(driver string) string {
 	case core.MYSQL:
 		return `
 		INSERT INTO alert_configuration
-		(alertmanager_configuration, configuration_hash, configuration_version, org_id, created_at, %s) 
+		(alertmanager_configuration, configuration_hash, configuration_version, org_id, created_at, %s)
 		SELECT T.* FROM (SELECT ? AS alertmanager_configuration,? AS configuration_hash,? AS configuration_version,? AS org_id,? AS created_at,? AS 'default') AS T
 		WHERE
 		EXISTS (
-			SELECT 1 
-			FROM alert_configuration 
-			WHERE 
-				org_id = ? 
-			AND 
-				id = (SELECT MAX(id) FROM alert_configuration WHERE org_id = ?) 
-			AND 
+			SELECT 1
+			FROM alert_configuration
+			WHERE
+				org_id = ?
+			AND
+				id = (SELECT MAX(id) FROM alert_configuration WHERE org_id = ?)
+			AND
 				configuration_hash = ?
 		)`
 	case core.POSTGRES:
 		return `
 		INSERT INTO alert_configuration
-		(alertmanager_configuration, configuration_hash, configuration_version, org_id, created_at, %s) 
+		(alertmanager_configuration, configuration_hash, configuration_version, org_id, created_at, %s)
 		SELECT T.* FROM (VALUES($1,$2,$3,$4::bigint,$5::integer,$6::boolean)) AS T
 		WHERE
 		EXISTS (
-			SELECT 1 
-			FROM alert_configuration 
-			WHERE 
-				org_id = $7 
-			AND 
-				id = (SELECT MAX(id) FROM alert_configuration WHERE org_id = $8::bigint) 
-			AND 
+			SELECT 1
+			FROM alert_configuration
+			WHERE
+				org_id = $7
+			AND
+				id = (SELECT MAX(id) FROM alert_configuration WHERE org_id = $8::bigint)
+			AND
 				configuration_hash = $9
 		)`
 	case core.SQLITE:
 		return `
 		INSERT INTO alert_configuration
-		(alertmanager_configuration, configuration_hash, configuration_version, org_id, created_at, %s) 
+		(alertmanager_configuration, configuration_hash, configuration_version, org_id, created_at, %s)
 		SELECT T.* FROM (VALUES(?,?,?,?,?,?)) AS T
 		WHERE
 		EXISTS (
-			SELECT 1 
-			FROM alert_configuration 
-			WHERE 
-				org_id = ? 
-			AND 
-				id = (SELECT MAX(id) FROM alert_configuration WHERE org_id = ?) 
-			AND 
+			SELECT 1
+			FROM alert_configuration
+			WHERE
+				org_id = ?
+			AND
+				id = (SELECT MAX(id) FROM alert_configuration WHERE org_id = ?)
+			AND
 				configuration_hash = ?
 		)`
 	default:
 		// SQLite version
 		return `
 		INSERT INTO alert_configuration
-		(alertmanager_configuration, configuration_hash, configuration_version, org_id, created_at, %s) 
+		(alertmanager_configuration, configuration_hash, configuration_version, org_id, created_at, %s)
 		SELECT T.* FROM (VALUES(?,?,?,?,?,?)) AS T
 		WHERE
 		EXISTS (
-			SELECT 1 
-			FROM alert_configuration 
-			WHERE 
-				org_id = ? 
-			AND 
-				id = (SELECT MAX(id) FROM alert_configuration WHERE org_id = ?) 
-			AND 
+			SELECT 1
+			FROM alert_configuration
+			WHERE
+				org_id = ?
+			AND
+				id = (SELECT MAX(id) FROM alert_configuration WHERE org_id = ?)
+			AND
 				configuration_hash = ?
 		)`
 	}
@@ -236,11 +236,11 @@ func (st *DBstore) deleteOldConfigurations(ctx context.Context, orgID int64, lim
 		}
 
 		res, err := sess.Exec(`
-			DELETE FROM 
-				alert_configuration 
+			DELETE FROM
+				alert_configuration
 			WHERE
 				org_id = ?
-			AND 
+			AND
 				id < ?
 		`, orgID, threshold)
 		if err != nil {

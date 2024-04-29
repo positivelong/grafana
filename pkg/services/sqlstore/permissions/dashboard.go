@@ -119,7 +119,7 @@ func (f AccessControlDashboardPermissionFilter) Where() (string, []interface{}) 
 		dashFolderFilter, _ := accesscontrol.Filter(f.User, "dashboard.uid", dashboards.ScopeFoldersPrefix, f.dashboardActions...)
 
 		builder.WriteString(dashFolderFilter.Where)
-		builder.WriteString(")) AND NOT dashboard.is_folder)")
+		builder.WriteString(")) AND dashboard.is_folder != 1)")
 		args = append(args, dashFolderFilter.Args...)
 	}
 
@@ -130,7 +130,7 @@ func (f AccessControlDashboardPermissionFilter) Where() (string, []interface{}) 
 		builder.WriteString("(")
 		folderFilter, _ := accesscontrol.Filter(f.User, "dashboard.uid", dashboards.ScopeFoldersPrefix, f.folderActions...)
 		builder.WriteString(folderFilter.Where)
-		builder.WriteString(" AND dashboard.is_folder)")
+		builder.WriteString(" AND dashboard.is_folder = 1)")
 		args = append(args, folderFilter.Args...)
 	}
 	builder.WriteString(")")
