@@ -2,11 +2,7 @@ package sqlstore
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"time"
-
-	"github.com/mattn/go-sqlite3"
 	"xorm.io/xorm"
 
 	"github.com/grafana/grafana/pkg/bus"

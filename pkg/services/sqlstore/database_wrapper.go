@@ -6,6 +6,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"gitee.com/travelliu/dm"
 	"time"
 
 	"github.com/gchaincl/sqlhooks"
@@ -16,7 +17,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/mattn/go-sqlite3"
 	"github.com/prometheus/client_golang/prometheus"
-	"xorm.io/core"
+	"xorm.io/xorm/core"
 )
 
 var (
@@ -42,6 +43,7 @@ func WrapDatabaseDriverWithHooks(dbType string, tracer tracing.Tracer) string {
 		migrator.SQLite:   &sqlite3.SQLiteDriver{},
 		migrator.MySQL:    &mysql.MySQLDriver{},
 		migrator.Postgres: &pq.Driver{},
+		migrator.DM:       &dm.DmDriver{},
 	}
 
 	d, exist := drivers[dbType]

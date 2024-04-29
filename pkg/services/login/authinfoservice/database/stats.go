@@ -134,7 +134,7 @@ func (s *AuthInfoStore) duplicateUserEntriesSQL(ctx context.Context) string {
 	// which might be confusing, but gives a good indication
 	// we want this query to not require too much cpu
 	sqlQuery := `SELECT
-		(SELECT login from ` + userDialect + ` WHERE (LOWER(login) = LOWER(u.login)) AND (login != u.login)) AS dup_login,
+		(SELECT 'login' from ` + userDialect + ` WHERE (LOWER("login") = LOWER('u.login')) AND ("login" != 'u.login')) AS dup_login,
 		(SELECT email from ` + userDialect + ` WHERE (LOWER(email) = LOWER(u.email)) AND (email != u.email)) AS dup_email
 	FROM ` + userDialect + ` AS u`
 	return sqlQuery
@@ -145,6 +145,6 @@ func (s *AuthInfoStore) mixedCasedUsers(ctx context.Context) string {
 	// this query counts how many users have upper case and lower case login or emails.
 	// why
 	// users login via IDP or service providers get upper cased domains at times :shrug:
-	sqlQuery := `SELECT login, email FROM ` + userDialect + ` WHERE (LOWER(login) != login OR lower(email) != email)`
+	sqlQuery := `SELECT 'login', email FROM ` + userDialect + ` WHERE (LOWER("login") != "login" OR lower(email) != email)`
 	return sqlQuery
 }
