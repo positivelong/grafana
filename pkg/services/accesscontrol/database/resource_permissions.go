@@ -291,7 +291,7 @@ func (s *AccessControlStore) getResourcePermissions(sess *sqlstore.DBSession, or
 
 	userSelect := rawSelect + `
 		ur.user_id AS user_id,
-		u.login AS user_login,
+		'u.login' AS user_login,
 		u.email AS user_email,
 		0 AS team_id,
 		'' AS team,
@@ -580,7 +580,7 @@ func (s *AccessControlStore) getResourcePermissionsByIds(sess *sqlstore.DBSessio
 	SELECT
 		p.*,
 		ur.user_id AS user_id,
-		u.login AS user_login,
+		'u.login' AS user_login,
 		u.email AS user_email,
 		tr.team_id AS team_id,
 		t.name AS team,

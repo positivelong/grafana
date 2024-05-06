@@ -939,13 +939,12 @@ func (d *DashboardStore) FindDashboards(ctx context.Context, query *models.FindP
 		},
 	}
 
-	// todo 复杂语句，有报错 Expression used as query condition
-	//if !ac.IsDisabled(d.sqlStore.Cfg) {
-	//	// if access control is enabled, overwrite the filters so far
-	//	filters = []interface{}{
-	//		permissions.NewAccessControlDashboardPermissionFilter(query.SignedInUser, query.Permission, query.Type),
-	//	}
-	//}
+	if !ac.IsDisabled(d.sqlStore.Cfg) {
+		// if access control is enabled, overwrite the filters so far
+		filters = []interface{}{
+			permissions.NewAccessControlDashboardPermissionFilter(query.SignedInUser, query.Permission, query.Type),
+		}
+	}
 
 	for _, filter := range query.Sort.Filter {
 		filters = append(filters, filter)

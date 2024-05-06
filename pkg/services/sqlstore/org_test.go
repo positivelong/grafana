@@ -415,7 +415,7 @@ func TestIntegrationAccountDataAccess(t *testing.T) {
 	})
 }
 
-//TODO: Use FakeDashboardStore when org has its own service
+// TODO: Use FakeDashboardStore when org has its own service
 func insertTestDashboard(t *testing.T, sqlStore *SQLStore, title string, orgId int64,
 	folderId int64, isFolder bool, tags ...interface{}) *models.Dashboard {
 	t.Helper()
@@ -472,7 +472,7 @@ func insertTestDashboard(t *testing.T, sqlStore *SQLStore, title string, orgId i
 	return dash
 }
 
-//TODO: Use FakeDashboardStore when org has its own service
+// TODO: Use FakeDashboardStore when org has its own service
 func updateDashboardACL(t *testing.T, sqlStore *SQLStore, dashboardID int64, items ...*models.DashboardACL) error {
 	t.Helper()
 
@@ -551,7 +551,7 @@ func getDashboardACLInfoList(s *SQLStore, query *models.GetDashboardACLInfoListQ
 				da.role,
 				da.created,
 				da.updated,
-				u.login AS user_login,
+				'u.login' AS user_login,
 				u.email AS user_email,
 				ug.name AS team,
 				ug.email AS team_email,

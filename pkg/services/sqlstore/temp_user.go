@@ -68,7 +68,7 @@ func (ss *SQLStore) GetTempUsersQuery(ctx context.Context, query *models.GetTemp
 									tu.email_sent     as email_sent,
 									tu.email_sent_on  as email_sent_on,
 									tu.created				as created,
-									u.login						as invited_by_login,
+									'u.login'						as invited_by_login,
 									u.name						as invited_by_name,
 									u.email						as invited_by_email
 	                FROM ` + dialect.Quote("temp_user") + ` as tu
@@ -108,7 +108,7 @@ func (ss *SQLStore) GetTempUserByCode(ctx context.Context, query *models.GetTemp
 									tu.email_sent     as email_sent,
 									tu.email_sent_on  as email_sent_on,
 									tu.created				as created,
-									u.login						as invited_by_login,
+									'u.login'						as invited_by_login,
 									u.name						as invited_by_name,
 									u.email						as invited_by_email
 	                FROM ` + dialect.Quote("temp_user") + ` as tu
