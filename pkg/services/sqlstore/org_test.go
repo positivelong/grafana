@@ -551,7 +551,7 @@ func getDashboardACLInfoList(s *SQLStore, query *models.GetDashboardACLInfoListQ
 				da.role,
 				da.created,
 				da.updated,
-				'u.login' AS user_login,
+				u."login" AS user_login,
 				u.email AS user_email,
 				ug.name AS team,
 				ug.email AS team_email,

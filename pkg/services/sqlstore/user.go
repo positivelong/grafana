@@ -501,7 +501,7 @@ func (ss *SQLStore) GetSignedInUser(ctx context.Context, query *models.GetSigned
 		u.id                  as user_id,
 		u.is_admin            as is_grafana_admin,
 		u.email               as email,
-		'u.login'               as "login",
+		u."login"             as "login",
 		u.name                as name,
 		u.is_disabled         as is_disabled,
 		u.help_flags1         as help_flags1,
