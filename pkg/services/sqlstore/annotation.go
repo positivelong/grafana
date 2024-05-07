@@ -137,7 +137,7 @@ func (r *SQLAnnotationRepo) Find(query *annotations.ItemQuery) ([]*annotations.I
 			annotation.created,
 			annotation.updated,
 			usr.email,
-			usr.login,
+			usr."login",
 			alert.name as alert_name
 		FROM annotation
 		LEFT OUTER JOIN ` + dialect.Quote("user") + ` as usr on usr.id = annotation.user_id

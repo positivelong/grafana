@@ -108,7 +108,7 @@ func GetOrgUsers(query *models.GetOrgUsersQuery) error {
 
 	if query.Query != "" {
 		queryWithWildcards := "%" + query.Query + "%"
-		whereConditions = append(whereConditions, "(email "+dialect.LikeStr()+" ? OR name "+dialect.LikeStr()+" ? OR login "+dialect.LikeStr()+" ?)")
+		whereConditions = append(whereConditions, "(email "+dialect.LikeStr()+" ? OR name "+dialect.LikeStr()+" ? OR 'login' "+dialect.LikeStr()+" ?)")
 		whereParams = append(whereParams, queryWithWildcards, queryWithWildcards, queryWithWildcards)
 	}
 
@@ -158,7 +158,7 @@ func (ss *SQLStore) SearchOrgUsers(query *models.SearchOrgUsersQuery) error {
 
 	if query.Query != "" {
 		queryWithWildcards := "%" + query.Query + "%"
-		whereConditions = append(whereConditions, "(email "+dialect.LikeStr()+" ? OR name "+dialect.LikeStr()+" ? OR login "+dialect.LikeStr()+" ?)")
+		whereConditions = append(whereConditions, "(email "+dialect.LikeStr()+" ? OR name "+dialect.LikeStr()+" ? OR 'login' "+dialect.LikeStr()+" ?)")
 		whereParams = append(whereParams, queryWithWildcards, queryWithWildcards, queryWithWildcards)
 	}
 
