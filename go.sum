@@ -2053,8 +2053,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/posener/complete v1.1.1/go.mod h1:em0nMJCgc9GFtwrmVmEMR/ZL6WyhyjMBndrE9hABlRI=
 github.com/posener/complete v1.2.3/go.mod h1:WZIdtGGp+qx0sLrYKtIRAruyNpv6hFCicSgv7Sy7s/s=
-github.com/positivelong/xorm v0.8.3-0.20240429082743-870cb831d71c h1:n+1MfNdBsxESl2XSAbuH8d1J9tRyL8cxjKXgkUjlaJk=
-github.com/positivelong/xorm v0.8.3-0.20240429082743-870cb831d71c/go.mod h1:3uISvP+AjOKZisS7TuPl+l+TYISsEsFkL8G/pQuxZjQ=
+github.com/positivelong/xorm v0.8.3-0.20240509075612-cad8c397377b h1:AQWwu2ILEQB6Z9w2oEoD4dADeV8TBG2sEl9REafAvFs=
+github.com/positivelong/xorm v0.8.3-0.20240509075612-cad8c397377b/go.mod h1:3uISvP+AjOKZisS7TuPl+l+TYISsEsFkL8G/pQuxZjQ=
 github.com/pquerna/cachecontrol v0.0.0-20171018203845-0dec1b30a021/go.mod h1:prYjPmNq4d1NPVmpShWobRqXY3q7Vp+80DqgxxUrUIA=
 github.com/pquerna/cachecontrol v0.1.0/go.mod h1:NrUG3Z7Rdu85UNR3vm7SOsl1nFIeSiQnrHV5K9mBcUI=
 github.com/prometheus/alertmanager v0.18.0/go.mod h1:WcxHBl40VSPuOaqWae6l6HpnEOVRIycEJ7i9iYkadEE=

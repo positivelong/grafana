@@ -357,4 +357,4 @@ replace github.com/microcosm-cc/bluemonday => github.com/microcosm-cc/bluemonday
 // This is a patched v0.8.2 intended to fix session.Find (and others) silently ignoring SQLITE_BUSY errors. This could
 // happen, for example, during a read when the sqlite db is under heavy write load.
 // This patch cherry picks compatible fixes from upstream xorm PR#1998 and can be reverted on upgrade to xorm v1.2.0+.
-replace xorm.io/xorm v0.8.2 => github.com/positivelong/xorm v0.8.3-0.20240429082743-870cb831d71c
+replace xorm.io/xorm v0.8.2 => github.com/positivelong/xorm v0.8.3-0.20240509075612-cad8c397377b
