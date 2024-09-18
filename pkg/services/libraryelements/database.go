@@ -21,6 +21,15 @@ const (
 	selectLibraryElementDTOWithMeta = `
 SELECT DISTINCT
 	le.name, le.id, le.org_id, le.folder_id, le.uid, le.kind, le.type, le.description, le.model, le.created, le.created_by, le.updated, le.updated_by, le.version
+	, u1.login AS created_by_name
+	, u1.email AS created_by_email
+	, u2.login AS updated_by_name
+	, u2.email AS updated_by_email
+	, (SELECT COUNT(connection_id) FROM ` + models.LibraryElementConnectionTableName + ` WHERE element_id = le.id AND kind=1) AS connected_dashboards`
+
+	selectLibraryElementDTOWithMetaForDM = `
+SELECT DISTINCT
+	le.name, le.id, le.org_id, le.folder_id, le.uid, le.kind, le.type, le.description, le.model, le.created, le.created_by, le.updated, le.updated_by, le.version
 	, u1."login" AS created_by_name
 	, u1.email AS created_by_email
 	, u2."login" AS updated_by_name
@@ -76,7 +85,13 @@ func syncFieldsWithModel(libraryElement *LibraryElement) error {
 
 func getLibraryElement(dialect migrator.Dialect, session *sqlstore.DBSession, uid string, orgID int64) (LibraryElementWithMeta, error) {
 	elements := make([]LibraryElementWithMeta, 0)
-	sql := selectLibraryElementDTOWithMeta +
+	var selectSql string
+	if dialect.DriverName() == "dm" {
+		selectSql = selectLibraryElementDTOWithMetaForDM
+	} else {
+		selectSql = selectLibraryElementDTOWithMeta
+	}
+	sql := selectSql +
 		", coalesce(dashboard.title, 'General') AS folder_name" +
 		", coalesce(dashboard.uid, '') AS folder_uid" +
 		getFromLibraryElementDTOWithMeta(dialect) +
@@ -223,14 +238,21 @@ func (l *LibraryElementService) deleteLibraryElement(c context.Context, signedIn
 func getLibraryElements(c context.Context, store *sqlstore.SQLStore, signedInUser *models.SignedInUser, params []Pair) ([]LibraryElementDTO, error) {
 	libraryElements := make([]LibraryElementWithMeta, 0)
 	err := store.WithDbSession(c, func(session *sqlstore.DBSession) error {
+		var selectMeta string
+		if store.GetDBType() == "dm" {
+			selectMeta = selectLibraryElementDTOWithMetaForDM
+		} else {
+			selectMeta = selectLibraryElementDTOWithMeta
+		}
+
 		builder := sqlstore.NewSqlBuilder(store.Cfg)
-		builder.Write(selectLibraryElementDTOWithMeta)
+		builder.Write(selectMeta)
 		builder.Write(", 'General' as folder_name ")
 		builder.Write(", '' as folder_uid ")
 		builder.Write(getFromLibraryElementDTOWithMeta(store.Dialect))
 		writeParamSelectorSQL(&builder, append(params, Pair{"folder_id", 0})...)
 		builder.Write(" UNION ")
-		builder.Write(selectLibraryElementDTOWithMeta)
+		builder.Write(selectMeta)
 		builder.Write(", dashboard.title as folder_name ")
 		builder.Write(", dashboard.uid as folder_uid ")
 		builder.Write(getFromLibraryElementDTOWithMeta(store.Dialect))
@@ -328,8 +350,14 @@ func (l *LibraryElementService) getAllLibraryElements(c context.Context, signedI
 	}
 	err := l.SQLStore.WithDbSession(c, func(session *sqlstore.DBSession) error {
 		builder := sqlstore.NewSqlBuilder(l.Cfg)
+		var selectMeta string
+		if l.SQLStore.GetDBType() == "dm" {
+			selectMeta = selectLibraryElementDTOWithMetaForDM
+		} else {
+			selectMeta = selectLibraryElementDTOWithMeta
+		}
 		if folderFilter.includeGeneralFolder {
-			builder.Write(selectLibraryElementDTOWithMeta)
+			builder.Write(selectMeta)
 			builder.Write(", 'General' as folder_name ")
 			builder.Write(", '' as folder_uid ")
 			builder.Write(getFromLibraryElementDTOWithMeta(l.SQLStore.Dialect))
@@ -340,7 +368,7 @@ func (l *LibraryElementService) getAllLibraryElements(c context.Context, signedI
 			writeTypeFilterSQL(typeFilter, &builder)
 			builder.Write(" UNION ")
 		}
-		builder.Write(selectLibraryElementDTOWithMeta)
+		builder.Write(selectMeta)
 		builder.Write(", dashboard.title as folder_name ")
 		builder.Write(", dashboard.uid as folder_uid ")
 		builder.Write(getFromLibraryElementDTOWithMeta(l.SQLStore.Dialect))
@@ -562,7 +590,11 @@ func (l *LibraryElementService) getConnections(c context.Context, signedInUser *
 		}
 		var libraryElementConnections []libraryElementConnectionWithMeta
 		builder := sqlstore.NewSqlBuilder(l.Cfg)
-		builder.Write(`SELECT lec.*, u1."login" AS created_by_name, u1.email AS created_by_email, dashboard.uid AS connection_uid`)
+		if l.SQLStore.GetDBType() == "dm" {
+			builder.Write(`SELECT lec.*, u1."login" AS created_by_name, u1.email AS created_by_email, dashboard.uid AS connection_uid`)
+		} else {
+			builder.Write(`SELECT lec.*, u1.login AS created_by_name, u1.email AS created_by_email, dashboard.uid AS connection_uid`)
+		}
 		builder.Write(" FROM " + models.LibraryElementConnectionTableName + " AS lec")
 		builder.Write(" LEFT JOIN " + l.SQLStore.Dialect.Quote("user") + " AS u1 ON lec.created_by = u1.id")
 		builder.Write(" INNER JOIN dashboard AS dashboard on lec.connection_id = dashboard.id")
@@ -601,7 +633,13 @@ func (l *LibraryElementService) getElementsForDashboardID(c context.Context, das
 	libraryElementMap := make(map[string]LibraryElementDTO)
 	err := l.SQLStore.WithDbSession(c, func(session *sqlstore.DBSession) error {
 		var libraryElements []LibraryElementWithMeta
-		sql := selectLibraryElementDTOWithMeta +
+		var sql string
+		if l.SQLStore.GetDBType() == "dm" {
+			sql = selectLibraryElementDTOWithMetaForDM
+		} else {
+			sql = selectLibraryElementDTOWithMeta
+		}
+		sql = sql +
 			", coalesce(dashboard.title, 'General') AS folder_name" +
 			", coalesce(dashboard.uid, '') AS folder_uid" +
 			getFromLibraryElementDTOWithMeta(l.SQLStore.Dialect) +

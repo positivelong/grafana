@@ -130,13 +130,23 @@ func (s *AuthInfoStore) CollectLoginStats(ctx context.Context) (map[string]inter
 
 func (s *AuthInfoStore) duplicateUserEntriesSQL(ctx context.Context) string {
 	userDialect := s.sqlStore.GetDialect().Quote("user")
+	isDM := s.sqlStore.GetDBType() == "dm"
 	// this query counts how many users have the same login or email.
 	// which might be confusing, but gives a good indication
 	// we want this query to not require too much cpu
-	sqlQuery := `SELECT
+	var sqlQuery string
+	if isDM {
+		sqlQuery = `SELECT
 		(SELECT "login" from ` + userDialect + ` WHERE (LOWER("login") = LOWER(u."login")) AND ("login" != u."login")) AS dup_login,
 		(SELECT email from ` + userDialect + ` WHERE (LOWER(email) = LOWER(u.email)) AND (email != u.email)) AS dup_email
 	FROM ` + userDialect + ` AS u`
+	} else {
+		sqlQuery = `SELECT
+		(SELECT login from ` + userDialect + ` WHERE (LOWER(login) = LOWER(u.login)) AND (login != u.login)) AS dup_login,
+		(SELECT email from ` + userDialect + ` WHERE (LOWER(email) = LOWER(u.email)) AND (email != u.email)) AS dup_email
+	FROM ` + userDialect + ` AS u`
+	}
+
 	return sqlQuery
 }
 
@@ -145,6 +155,12 @@ func (s *AuthInfoStore) mixedCasedUsers(ctx context.Context) string {
 	// this query counts how many users have upper case and lower case login or emails.
 	// why
 	// users login via IDP or service providers get upper cased domains at times :shrug:
-	sqlQuery := `SELECT "login", email FROM ` + userDialect + ` WHERE (LOWER("login") != "login" OR lower(email) != email)`
+	isDM := s.sqlStore.GetDBType() == "dm"
+	var sqlQuery string
+	if isDM {
+		sqlQuery = `SELECT "login", email FROM ` + userDialect + ` WHERE (LOWER("login") != "login" OR lower(email) != email)`
+	} else {
+		sqlQuery = `SELECT login, email FROM ` + userDialect + ` WHERE (LOWER(login) != login OR lower(email) != email)`
+	}
 	return sqlQuery
 }

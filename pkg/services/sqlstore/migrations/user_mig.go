@@ -161,8 +161,13 @@ type TempUserDTO struct {
 
 func (m *AddMissingUserSaltAndRandsMigration) Exec(sess *xorm.Session, mg *Migrator) error {
 	users := make([]*TempUserDTO, 0)
-
-	err := sess.SQL(fmt.Sprintf(`SELECT id, "login" from %s WHERE rands = ''`, mg.Dialect.Quote("user"))).Find(&users)
+	var selectSql string
+	if mg.DBEngine.DriverName() == "dm" {
+		selectSql = `SELECT id, "login" from %s WHERE rands = ''`
+	} else {
+		selectSql = `SELECT id, login from %s WHERE rands = ''`
+	}
+	err := sess.SQL(fmt.Sprintf(selectSql, mg.Dialect.Quote("user"))).Find(&users)
 	if err != nil {
 		return err
 	}

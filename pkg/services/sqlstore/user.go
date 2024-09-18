@@ -54,8 +54,13 @@ func (ss *SQLStore) getOrgIDForNewUser(sess *DBSession, args user.CreateUserComm
 
 func (ss *SQLStore) userCaseInsensitiveLoginConflict(ctx context.Context, sess *DBSession, login, email string) error {
 	users := make([]user.User, 0)
-
-	if err := sess.Where(`LOWER(email)=LOWER(?) OR LOWER("login")=LOWER(?)`,
+	var whereSql string
+	if ss.GetDBType() == "dm" {
+		whereSql = `LOWER(email)=LOWER(?) OR LOWER("login")=LOWER(?)`
+	} else {
+		whereSql = `LOWER(email)=LOWER(?) OR LOWER(login)=LOWER(?)`
+	}
+	if err := sess.Where(whereSql,
 		email, login).Find(&users); err != nil {
 		return err
 	}
@@ -87,10 +92,18 @@ func (ss *SQLStore) createUser(ctx context.Context, sess *DBSession, args user.C
 	if args.Email == "" {
 		args.Email = args.Login
 	}
-
-	where := `email=? OR "login"=?`
+	var where string
+	if ss.GetDBType() == "dm" {
+		where = `email=? OR "login"=?`
+	} else {
+		where = `email=? OR login=?`
+	}
 	if ss.Cfg.CaseInsensitiveLogin {
-		where = `LOWER(email)=LOWER(?) OR LOWER("login")=LOWER(?)`
+		if ss.GetDBType() == "dm" {
+			where = `LOWER(email)=LOWER(?) OR LOWER("login")=LOWER(?)`
+		} else {
+			where = `LOWER(email)=LOWER(?) OR LOWER(login)=LOWER(?)`
+		}
 		args.Login = strings.ToLower(args.Login)
 		args.Email = strings.ToLower(args.Email)
 	}
@@ -221,6 +234,7 @@ func (ss *SQLStore) GetUserById(ctx context.Context, query *models.GetUserByIdQu
 }
 
 func (ss *SQLStore) GetUserByLogin(ctx context.Context, query *models.GetUserByLoginQuery) error {
+	isDM := ss.GetDBType() == "dm"
 	return ss.WithDbSession(ctx, func(sess *DBSession) error {
 		if query.LoginOrEmail == "" {
 			return user.ErrUserNotFound
@@ -229,9 +243,20 @@ func (ss *SQLStore) GetUserByLogin(ctx context.Context, query *models.GetUserByL
 		// Try and find the user by login first.
 		// It's not sufficient to assume that a LoginOrEmail with an "@" is an email.
 		usr := &user.User{}
-		where := `"login"=?`
+		var where string
+		if isDM {
+			where = `"login"=?`
+		} else {
+			where = "login=?"
+		}
+
 		if ss.Cfg.CaseInsensitiveLogin {
-			where = `LOWER("login")=LOWER(?)`
+			if isDM {
+				where = `LOWER("login")=LOWER(?)`
+			} else {
+				where = `LOWER(login)=LOWER(?)`
+			}
+
 		}
 
 		has, err := sess.Where(notServiceAccountFilter(ss)).Where(where, query.LoginOrEmail).Get(usr)
@@ -490,14 +515,20 @@ func (ss *SQLStore) GetSignedInUserWithCacheCtx(ctx context.Context, query *mode
 	return nil
 }
 
+func (ss *SQLStore) GetDBType() string {
+	return string(ss.engine.Dialect().DBType())
+}
+
 func (ss *SQLStore) GetSignedInUser(ctx context.Context, query *models.GetSignedInUserQuery) error {
+	isDM := ss.GetDBType() == "dm"
 	return ss.WithDbSession(ctx, func(dbSess *DBSession) error {
 		orgId := "u.org_id"
 		if query.OrgId > 0 {
 			orgId = strconv.FormatInt(query.OrgId, 10)
 		}
-
-		var rawSQL = `SELECT
+		var rawSQL string
+		if isDM {
+			rawSQL = `SELECT
 		u.id                  as user_id,
 		u.is_admin            as is_grafana_admin,
 		u.email               as email,
@@ -516,6 +547,27 @@ func (ss *SQLStore) GetSignedInUser(ctx context.Context, query *models.GetSigned
 		LEFT OUTER JOIN user_auth on user_auth.user_id = u.id
 		LEFT OUTER JOIN org_user on org_user.org_id = ` + orgId + ` and org_user.user_id = u.id
 		LEFT OUTER JOIN org on org.id = org_user.org_id `
+		} else {
+			rawSQL = `SELECT
+		u.id                  as user_id,
+		u.is_admin            as is_grafana_admin,
+		u.email               as email,
+		u.login               as login,
+		u.name                as name,
+		u.is_disabled         as is_disabled,
+		u.help_flags1         as help_flags1,
+		u.last_seen_at        as last_seen_at,
+		(SELECT COUNT(*) FROM org_user where org_user.user_id = u.id) as org_count,
+		user_auth.auth_module as external_auth_module,
+		user_auth.auth_id     as external_auth_id,
+		org.name              as org_name,
+		org_user.role         as org_role,
+		org.id                as org_id
+		FROM ` + dialect.Quote("user") + ` as u
+		LEFT OUTER JOIN user_auth on user_auth.user_id = u.id
+		LEFT OUTER JOIN org_user on org_user.org_id = ` + orgId + ` and org_user.user_id = u.id
+		LEFT OUTER JOIN org on org.id = org_user.org_id `
+		}
 
 		sess := dbSess.Table("user")
 		sess = sess.Context(ctx)
@@ -524,9 +576,17 @@ func (ss *SQLStore) GetSignedInUser(ctx context.Context, query *models.GetSigned
 			sess.SQL(rawSQL+"WHERE u.id=?", query.UserId)
 		case query.Login != "":
 			if ss.Cfg.CaseInsensitiveLogin {
-				sess.SQL(rawSQL+`WHERE LOWER(u."login")=LOWER(?)`, query.Login)
+				if isDM {
+					sess.SQL(rawSQL+`WHERE LOWER(u."login")=LOWER(?)`, query.Login)
+				} else {
+					sess.SQL(rawSQL+`WHERE LOWER(u.login)=LOWER(?)`, query.Login)
+				}
 			} else {
-				sess.SQL(rawSQL+`WHERE u."login"=?`, query.Login)
+				if isDM {
+					sess.SQL(rawSQL+`WHERE u."login"=?`, query.Login)
+				} else {
+					sess.SQL(rawSQL+`WHERE u.login=?`, query.Login)
+				}
 			}
 		case query.Email != "":
 			if ss.Cfg.CaseInsensitiveLogin {
@@ -620,7 +680,13 @@ func (ss *SQLStore) SearchUsers(ctx context.Context, query *models.SearchUsersQu
 		}
 
 		if query.Query != "" {
-			whereConditions = append(whereConditions, "(email "+dialect.LikeStr()+" ? OR name "+dialect.LikeStr()+` ? OR "login" `+dialect.LikeStr()+" ?)")
+			var loginStr string
+			if ss.GetDBType() == "dm" {
+				loginStr = ` ? OR "login" `
+			} else {
+				loginStr = ` ? OR login `
+			}
+			whereConditions = append(whereConditions, "(email "+dialect.LikeStr()+" ? OR name "+dialect.LikeStr()+loginStr+dialect.LikeStr()+" ?)")
 			whereParams = append(whereParams, queryWithWildcards, queryWithWildcards, queryWithWildcards)
 		}
 
@@ -654,9 +720,13 @@ func (ss *SQLStore) SearchUsers(ctx context.Context, query *models.SearchUsersQu
 			offset := query.Limit * (query.Page - 1)
 			sess.Limit(query.Limit, offset)
 		}
-
-		sess.Cols("u.id", "u.email", "u.name", `u."login"`, "u.is_admin", "u.is_disabled", "u.last_seen_at", "user_auth.auth_module")
-		sess.Asc(`u."login"`, "u.email")
+		if ss.GetDBType() == "dm" {
+			sess.Cols("u.id", "u.email", "u.name", `u."login"`, "u.is_admin", "u.is_disabled", "u.last_seen_at", "user_auth.auth_module")
+			sess.Asc(`u."login"`, "u.email")
+		} else {
+			sess.Cols("u.id", "u.email", "u.name", `u.login`, "u.is_admin", "u.is_disabled", "u.last_seen_at", "user_auth.auth_module")
+			sess.Asc(`u.login`, "u.email")
+		}
 		if err := sess.Find(&query.Result.Users); err != nil {
 			return err
 		}

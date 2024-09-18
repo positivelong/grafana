@@ -723,12 +723,17 @@ func (d *DashboardStore) deleteDashboard(cmd *models.DeleteDashboardCommand, ses
 	} else if !has {
 		return dashboards.ErrDashboardNotFound
 	}
-
+	var delete_playlist_item_sql string
+	if d.sqlStore.GetDBType() == "dm" {
+		delete_playlist_item_sql = "DELETE FROM playlist_item WHERE type = 'dashboard_by_id' AND value = '?'"
+	} else {
+		delete_playlist_item_sql = "DELETE FROM playlist_item WHERE type = 'dashboard_by_id' AND value = ?"
+	}
 	deletes := []string{
 		"DELETE FROM dashboard_tag WHERE dashboard_id = ? ",
 		"DELETE FROM star WHERE dashboard_id = ? ",
 		"DELETE FROM dashboard WHERE id = ?",
-		"DELETE FROM playlist_item WHERE type = 'dashboard_by_id' AND value = '?'",
+		delete_playlist_item_sql,
 		"DELETE FROM dashboard_version WHERE dashboard_id = ?",
 		"DELETE FROM annotation WHERE dashboard_id = ?",
 		"DELETE FROM dashboard_provisioning WHERE dashboard_id = ?",

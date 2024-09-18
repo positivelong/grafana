@@ -592,3 +592,7 @@ func (m *SQLStoreMock) IsAdminOfTeams(ctx context.Context, query *models.IsAdmin
 func (m *SQLStoreMock) GetAPIKeyByHash(ctx context.Context, hash string) (*models.ApiKey, error) {
 	return nil, m.ExpectedError
 }
+
+func (m *SQLStoreMock) GetDBType() string {
+	return ""
+}

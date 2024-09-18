@@ -288,8 +288,9 @@ func (s *AccessControlStore) getResourcePermissions(sess *sqlstore.DBSession, or
 		p.*,
 		r.name as role_name,
 	`
-
-	userSelect := rawSelect + `
+	var userSelect string
+	if s.sql.GetDBType() == "dm" {
+		userSelect = rawSelect + `
 		ur.user_id AS user_id,
 		u."login" AS user_login,
 		u.email AS user_email,
@@ -298,6 +299,17 @@ func (s *AccessControlStore) getResourcePermissions(sess *sqlstore.DBSession, or
 		'' AS team_email,
 		'' AS built_in_role
 	`
+	} else {
+		userSelect = rawSelect + `
+		ur.user_id AS user_id,
+		u.login AS user_login,
+		u.email AS user_email,
+		0 AS team_id,
+		'' AS team,
+		'' AS team_email,
+		'' AS built_in_role
+	`
+	}
 
 	teamSelect := rawSelect + `
 		0 AS user_id,
@@ -576,7 +588,9 @@ func (s *AccessControlStore) getResourcePermissionsByIds(sess *sqlstore.DBSessio
 	if len(ids) == 0 {
 		return result, nil
 	}
-	rawSql := `
+	var rawSql string
+	if s.sql.GetDBType() == "dm" {
+		rawSql = `
 	SELECT
 		p.*,
 		ur.user_id AS user_id,
@@ -596,6 +610,28 @@ func (s *AccessControlStore) getResourcePermissionsByIds(sess *sqlstore.DBSessio
 		LEFT JOIN builtin_role br ON r.id = br.role_id
 	WHERE p.id IN (?` + strings.Repeat(",?", len(ids)-1) + `)
 	`
+	} else {
+		rawSql = `
+	SELECT
+		p.*,
+		ur.user_id AS user_id,
+		login AS user_login,
+		u.email AS user_email,
+		tr.team_id AS team_id,
+		t.name AS team,
+		t.email AS team_email,
+		r.name as role_name,
+		br.role AS built_in_role
+	FROM permission p
+		INNER JOIN role r ON p.role_id = r.id
+		LEFT JOIN team_role tr ON r.id = tr.role_id
+		LEFT JOIN team t ON tr.team_id = t.id
+		LEFT JOIN user_role ur ON r.id = ur.role_id
+		LEFT JOIN ` + s.sql.Dialect.Quote("user") + ` u ON ur.user_id = u.id
+		LEFT JOIN builtin_role br ON r.id = br.role_id
+	WHERE p.id IN (?` + strings.Repeat(",?", len(ids)-1) + `)
+	`
+	}
 
 	args := make([]interface{}, 0, len(ids)+1)
 	for _, id := range ids {

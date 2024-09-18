@@ -57,7 +57,9 @@ func (ss *SQLStore) UpdateTempUserWithEmailSent(ctx context.Context, cmd *models
 
 func (ss *SQLStore) GetTempUsersQuery(ctx context.Context, query *models.GetTempUsersQuery) error {
 	return ss.WithDbSession(ctx, func(dbSess *DBSession) error {
-		rawSQL := `SELECT
+		var rawSQL string
+		if ss.GetDBType() == "dm" {
+			rawSQL = `SELECT
 	                tu.id             as id,
 	                tu.org_id         as org_id,
 	                tu.email          as email,
@@ -74,6 +76,26 @@ func (ss *SQLStore) GetTempUsersQuery(ctx context.Context, query *models.GetTemp
 	                FROM ` + dialect.Quote("temp_user") + ` as tu
 									LEFT OUTER JOIN ` + dialect.Quote("user") + ` as u on u.id = tu.invited_by_user_id
 									WHERE tu.status=?`
+		} else {
+			rawSQL = `SELECT
+	                tu.id             as id,
+	                tu.org_id         as org_id,
+	                tu.email          as email,
+									tu.name           as name,
+									tu.role           as role,
+									tu.code           as code,
+									tu.status         as status,
+									tu.email_sent     as email_sent,
+									tu.email_sent_on  as email_sent_on,
+									tu.created				as created,
+									u.login					as invited_by_login,
+									u.name						as invited_by_name,
+									u.email						as invited_by_email
+	                FROM ` + dialect.Quote("temp_user") + ` as tu
+									LEFT OUTER JOIN ` + dialect.Quote("user") + ` as u on u.id = tu.invited_by_user_id
+									WHERE tu.status=?`
+		}
+
 		params := []interface{}{string(query.Status)}
 
 		if query.OrgId > 0 {
@@ -97,7 +119,9 @@ func (ss *SQLStore) GetTempUsersQuery(ctx context.Context, query *models.GetTemp
 
 func (ss *SQLStore) GetTempUserByCode(ctx context.Context, query *models.GetTempUserByCodeQuery) error {
 	return ss.WithDbSession(ctx, func(dbSess *DBSession) error {
-		var rawSQL = `SELECT
+		var rawSQL string
+		if ss.GetDBType() == "dm" {
+			rawSQL = `SELECT
 	                tu.id             as id,
 	                tu.org_id         as org_id,
 	                tu.email          as email,
@@ -114,7 +138,25 @@ func (ss *SQLStore) GetTempUserByCode(ctx context.Context, query *models.GetTemp
 	                FROM ` + dialect.Quote("temp_user") + ` as tu
 									LEFT OUTER JOIN ` + dialect.Quote("user") + ` as u on u.id = tu.invited_by_user_id
 	                WHERE tu.code=?`
-
+		} else {
+			rawSQL = `SELECT
+	                tu.id             as id,
+	                tu.org_id         as org_id,
+	                tu.email          as email,
+									tu.name           as name,
+									tu.role           as role,
+									tu.code           as code,
+									tu.status         as status,
+									tu.email_sent     as email_sent,
+									tu.email_sent_on  as email_sent_on,
+									tu.created				as created,
+									u.login						as invited_by_login,
+									u.name						as invited_by_name,
+									u.email						as invited_by_email
+	                FROM ` + dialect.Quote("temp_user") + ` as tu
+									LEFT OUTER JOIN ` + dialect.Quote("user") + ` as u on u.id = tu.invited_by_user_id
+	                WHERE tu.code=?`
+		}
 		var tempUser models.TempUserDTO
 		sess := dbSess.SQL(rawSQL, query.Code)
 		has, err := sess.Get(&tempUser)

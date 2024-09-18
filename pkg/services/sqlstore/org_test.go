@@ -538,8 +538,9 @@ func getDashboardACLInfoList(s *SQLStore, query *models.GetDashboardACLInfoListQ
 		WHERE da.dashboard_id = -1`
 			return dbSession.SQL(sql).Find(&query.Result)
 		}
-
-		rawSQL := `
+		var rawSQL string
+		if s.GetDBType() == "dm" {
+			rawSQL = `
 			-- get permissions for the dashboard and its parent folder
 			SELECT
 				da.id,
@@ -577,6 +578,46 @@ func getDashboardACLInfoList(s *SQLStore, query *models.GetDashboardACLInfoListQ
 			WHERE d.org_id = ? AND d.id = ? AND da.id IS NOT NULL
 			ORDER BY da.id ASC
 			`
+		} else {
+			rawSQL = `
+			-- get permissions for the dashboard and its parent folder
+			SELECT
+				da.id,
+				da.org_id,
+				da.dashboard_id,
+				da.user_id,
+				da.team_id,
+				da.permission,
+				da.role,
+				da.created,
+				da.updated,
+				u.login AS user_login,
+				u.email AS user_email,
+				ug.name AS team,
+				ug.email AS team_email,
+				d.title,
+				d.slug,
+				d.uid,
+				d.is_folder,
+				CASE WHEN (da.dashboard_id = -1 AND d.folder_id > 0) OR da.dashboard_id = d.folder_id THEN ` + dialect.BooleanStr(true) + ` ELSE ` + falseStr + ` END AS inherited
+			FROM dashboard as d
+				LEFT JOIN dashboard folder on folder.id = d.folder_id
+				LEFT JOIN dashboard_acl AS da ON
+				da.dashboard_id = d.id OR
+				da.dashboard_id = d.folder_id OR
+				(
+					-- include default permissions -->
+					da.org_id = -1 AND (
+					  (folder.id IS NOT NULL AND folder.has_acl = ` + falseStr + `) OR
+					  (folder.id IS NULL AND d.has_acl = ` + falseStr + `)
+					)
+				)
+				LEFT JOIN ` + dialect.Quote("user") + ` AS u ON u.id = da.user_id
+				LEFT JOIN team ug on ug.id = da.team_id
+			WHERE d.org_id = ? AND d.id = ? AND da.id IS NOT NULL
+			ORDER BY da.id ASC
+			`
+		}
 
 		return dbSession.SQL(rawSQL, query.OrgID, query.DashboardID).Find(&query.Result)
 	})
