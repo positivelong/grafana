@@ -95,7 +95,7 @@ func (db *MySQLDialect) SQLType(c *Column) string {
 func (db *MySQLDialect) UpdateTableSQL(tableName string, columns []*Column) string {
 	var statements = []string{}
 
-	statements = append(statements, "DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+	//statements = append(statements, "DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
 
 	for _, col := range columns {
 		statements = append(statements, "MODIFY "+col.StringNoPk(db))
