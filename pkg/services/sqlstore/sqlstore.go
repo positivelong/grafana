@@ -255,7 +255,7 @@ func (ss *SQLStore) buildConnectionString() (string, error) {
 	}
 
 	switch ss.dbCfg.Type {
-	case migrator.MySQL:
+	case migrator.MySQL, migrator.OceanBase:
 		protocol := "tcp"
 		if strings.HasPrefix(ss.dbCfg.Host, "/") {
 			protocol = "unix"
@@ -729,6 +729,14 @@ func initTestDB(migration registry.DatabaseMigrator, opts ...InitTestDBOpt) (*SQ
 func IsTestDbMySQL() bool {
 	if db, present := os.LookupEnv("GRAFANA_TEST_DB"); present {
 		return db == migrator.MySQL
+	}
+
+	return false
+}
+
+func IsTestDbOceanBase() bool {
+	if db, present := os.LookupEnv("GRAFANA_TEST_DB"); present {
+		return db == migrator.OceanBase
 	}
 
 	return false

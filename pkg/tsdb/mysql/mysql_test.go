@@ -33,7 +33,7 @@ func TestIntegrationMySQL(t *testing.T) {
 	runMySQLTests := false
 	// runMySqlTests := true
 
-	if !(sqlstore.IsTestDbMySQL() || runMySQLTests) {
+	if !(sqlstore.IsTestDbMySQL() || sqlstore.IsTestDbOceanBase() || runMySQLTests) {
 		t.Skip()
 	}
 

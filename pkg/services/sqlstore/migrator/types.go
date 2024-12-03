@@ -8,11 +8,12 @@ import (
 )
 
 const (
-	Postgres = "postgres"
-	SQLite   = "sqlite3"
-	MySQL    = "mysql"
-	MSSQL    = "mssql"
-	DM       = "dm"
+	Postgres  = "postgres"
+	SQLite    = "sqlite3"
+	MySQL     = "mysql"
+	MSSQL     = "mssql"
+	DM        = "dm"
+	OceanBase = "oceanbase"
 )
 
 type Migration interface {

@@ -40,10 +40,11 @@ func init() {
 // database queries. It also registers the metrics.
 func WrapDatabaseDriverWithHooks(dbType string, tracer tracing.Tracer) string {
 	drivers := map[string]driver.Driver{
-		migrator.SQLite:   &sqlite3.SQLiteDriver{},
-		migrator.MySQL:    &mysql.MySQLDriver{},
-		migrator.Postgres: &pq.Driver{},
-		migrator.DM:       &dm.DmDriver{},
+		migrator.SQLite:    &sqlite3.SQLiteDriver{},
+		migrator.MySQL:     &mysql.MySQLDriver{},
+		migrator.Postgres:  &pq.Driver{},
+		migrator.DM:        &dm.DmDriver{},
+		migrator.OceanBase: &mysql.MySQLDriver{},
 	}
 
 	d, exist := drivers[dbType]

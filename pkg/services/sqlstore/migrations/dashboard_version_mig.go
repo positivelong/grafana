@@ -55,5 +55,6 @@ FROM dashboard;`
 
 	// change column type of dashboard_version.data
 	mg.AddMigration("alter dashboard_version.data to mediumtext v1", NewRawSQLMigration("").
-		Mysql("ALTER TABLE dashboard_version MODIFY data MEDIUMTEXT;"))
+		Mysql("ALTER TABLE dashboard_version MODIFY data MEDIUMTEXT;").
+		Oceanbase("ALTER TABLE dashboard_version MODIFY data MEDIUMTEXT;"))
 }

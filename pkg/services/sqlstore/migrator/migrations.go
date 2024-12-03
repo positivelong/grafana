@@ -77,6 +77,10 @@ func (m *RawSQLMigration) Mysql(sql string) *RawSQLMigration {
 	return m.Set(MySQL, sql)
 }
 
+func (m *RawSQLMigration) Oceanbase(sql string) *RawSQLMigration {
+	return m.Set(OceanBase, sql)
+}
+
 func (m *RawSQLMigration) Postgres(sql string) *RawSQLMigration {
 	return m.Set(Postgres, sql)
 }

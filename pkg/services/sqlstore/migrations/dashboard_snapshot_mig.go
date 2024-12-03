@@ -51,7 +51,8 @@ func addDashboardSnapshotMigrations(mg *Migrator) {
 
 	// change column type of dashboard
 	mg.AddMigration("alter dashboard_snapshot to mediumtext v2", NewRawSQLMigration("").
-		Mysql("ALTER TABLE dashboard_snapshot MODIFY dashboard MEDIUMTEXT;"))
+		Mysql("ALTER TABLE dashboard_snapshot MODIFY dashboard MEDIUMTEXT;").
+		Oceanbase("ALTER TABLE dashboard_snapshot MODIFY dashboard MEDIUMTEXT;"))
 
 	mg.AddMigration("Update dashboard_snapshot table charset", NewTableCharsetMigration("dashboard_snapshot", []*Column{
 		{Name: "name", Type: DB_NVarchar, Length: 255, Nullable: false},
@@ -70,5 +71,6 @@ func addDashboardSnapshotMigrations(mg *Migrator) {
 	}))
 
 	mg.AddMigration("Change dashboard_encrypted column to MEDIUMBLOB", NewRawSQLMigration("").
-		Mysql("ALTER TABLE dashboard_snapshot MODIFY dashboard_encrypted MEDIUMBLOB;"))
+		Mysql("ALTER TABLE dashboard_snapshot MODIFY dashboard_encrypted MEDIUMBLOB;").
+		Oceanbase("ALTER TABLE dashboard_snapshot MODIFY dashboard_encrypted MEDIUMBLOB;"))
 }
