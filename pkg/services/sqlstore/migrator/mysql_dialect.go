@@ -86,7 +86,7 @@ func (db *MySQLDialect) SQLType(c *Column) string {
 
 	switch c.Type {
 	case DB_Char, DB_Varchar, DB_NVarchar, DB_TinyText, DB_Text, DB_MediumText, DB_LongText:
-		res += " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+		res += " CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci"
 	}
 
 	return res

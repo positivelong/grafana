@@ -32,7 +32,7 @@ func characterEscape(s string, escapeChar string) string {
 	return strings.ReplaceAll(s, escapeChar, url.QueryEscape(escapeChar))
 }
 
-//nolint: staticcheck // plugins.DataPlugin deprecated
+// nolint: staticcheck // plugins.DataPlugin deprecated
 func New(httpClientProvider httpclient.Provider) func(datasource *models.DataSource) (plugins.DataPlugin, error) {
 	//nolint: staticcheck // plugins.DataPlugin deprecated
 	return func(datasource *models.DataSource) (plugins.DataPlugin, error) {
@@ -43,7 +43,7 @@ func New(httpClientProvider httpclient.Provider) func(datasource *models.DataSou
 			protocol = "unix"
 		}
 
-		cnnstr := fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_unicode_ci&parseTime=true&loc=UTC&allowNativePasswords=true",
+		cnnstr := fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_general_ci&parseTime=true&loc=UTC&allowNativePasswords=true",
 			characterEscape(datasource.User, ":"),
 			datasource.DecryptedPassword(),
 			protocol,

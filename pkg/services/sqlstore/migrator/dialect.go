@@ -140,7 +140,7 @@ func (b *BaseDialect) CreateTableSQL(table *Table) string {
 
 	sql = sql[:len(sql)-2] + ")"
 	if b.dialect.SupportEngine() {
-		sql += " ENGINE=InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_unicode_ci"
+		sql += " ENGINE=InnoDB DEFAULT CHARSET utf8mb4 COLLATE utf8mb4_general_ci"
 	}
 
 	sql += ";"
@@ -284,7 +284,7 @@ func (b *BaseDialect) TruncateDBTables() error {
 	return nil
 }
 
-//UpsertSQL returns empty string
+// UpsertSQL returns empty string
 func (b *BaseDialect) UpsertSQL(tableName string, keyCols, updateCols []string) string {
 	return ""
 }
