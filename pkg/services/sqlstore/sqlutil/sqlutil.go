@@ -34,6 +34,21 @@ func MySQLTestDB() TestDB {
 	}
 }
 
+func OceanBaseTestDB() TestDB {
+	host := os.Getenv("OCEANBASE_HOST")
+	if host == "" {
+		host = "localhost"
+	}
+	port := os.Getenv("OCEANBASE_PORT")
+	if port == "" {
+		port = "3306"
+	}
+	return TestDB{
+		DriverName: "mysql",
+		ConnStr:    fmt.Sprintf("grafana:password@tcp(%s:%s)/grafana_tests?collation=utf8mb4_general_ci", host, port),
+	}
+}
+
 func PostgresTestDB() TestDB {
 	host := os.Getenv("POSTGRES_HOST")
 	if host == "" {

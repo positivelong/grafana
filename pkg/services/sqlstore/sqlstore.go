@@ -256,13 +256,17 @@ func (ss *SQLStore) buildConnectionString() (string, error) {
 
 	switch ss.dbCfg.Type {
 	case migrator.MySQL, migrator.OceanBase:
+		var collation = "utf8mb4_unicode_ci"
+		if ss.dbCfg.Type == migrator.OceanBase {
+			collation = "utf8mb4_general_ci"
+		}
 		protocol := "tcp"
 		if strings.HasPrefix(ss.dbCfg.Host, "/") {
 			protocol = "unix"
 		}
 
-		cnnstr = fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_unicode_ci&allowNativePasswords=true",
-			ss.dbCfg.User, ss.dbCfg.Pwd, protocol, ss.dbCfg.Host, ss.dbCfg.Name)
+		cnnstr = fmt.Sprintf("%s:%s@%s(%s)/%s?collation=%s&allowNativePasswords=true",
+			ss.dbCfg.User, ss.dbCfg.Pwd, protocol, ss.dbCfg.Host, ss.dbCfg.Name, collation)
 
 		if ss.dbCfg.SslMode == "true" || ss.dbCfg.SslMode == "skip-verify" {
 			tlsCert, err := makeCert(ss.dbCfg)
