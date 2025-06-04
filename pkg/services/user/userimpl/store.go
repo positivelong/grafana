@@ -95,7 +95,9 @@ func (ss *sqlStore) Get(ctx context.Context, usr *user.User) (*user.User, error)
 		if ss.cfg.CaseInsensitiveLogin {
 			where = "LOWER(email)=LOWER(?) OR LOWER(login)=LOWER(?)"
 		}
-
+		if ss.dialect.DriverName() == "dm" {
+			where = strings.ReplaceAll(where, "login", `"login"`)
+		}
 		exists, err := sess.Where(where, email, login).Get(ret)
 		if !exists {
 			return user.ErrUserNotFound
@@ -166,7 +168,11 @@ func (ss *sqlStore) notServiceAccountFilter() string {
 func (ss *sqlStore) CaseInsensitiveLoginConflict(ctx context.Context, login, email string) error {
 	users := make([]user.User, 0)
 	err := ss.db.WithDbSession(ctx, func(sess *db.Session) error {
-		if err := sess.Where("LOWER(email)=LOWER(?) OR LOWER(login)=LOWER(?)",
+		where := "LOWER(email)=LOWER(?) OR LOWER(login)=LOWER(?)"
+		if ss.dialect.DriverName() == "dm" {
+			where = strings.ReplaceAll(where, "login", `"login"`)
+		}
+		if err := sess.Where(where,
 			email, login).Find(&users); err != nil {
 			return err
 		}
@@ -208,6 +214,9 @@ func (ss *sqlStore) GetByLogin(ctx context.Context, query *user.GetUserByLoginQu
 			where = "login=?"
 			if ss.cfg.CaseInsensitiveLogin {
 				where = "LOWER(login)=LOWER(?)"
+			}
+			if ss.dialect.DriverName() == "dm" {
+				where = strings.ReplaceAll(where, "login", `"login"`)
 			}
 			has, err = sess.Where(ss.notServiceAccountFilter()).Where(where, query.LoginOrEmail).Get(usr)
 		}
@@ -267,8 +276,11 @@ func (ss *sqlStore) GetByEmail(ctx context.Context, query *user.GetUserByEmailQu
 
 func (ss *sqlStore) userCaseInsensitiveLoginConflict(ctx context.Context, sess *db.Session, login, email string) error {
 	users := make([]user.User, 0)
-
-	if err := sess.Where("LOWER(email)=LOWER(?) OR LOWER(login)=LOWER(?)",
+	where := "LOWER(email)=LOWER(?) OR LOWER(login)=LOWER(?)"
+	if ss.dialect.DriverName() == "dm" {
+		where = strings.ReplaceAll(where, "login", `"login"`)
+	}
+	if err := sess.Where(where,
 		email, login).Find(&users); err != nil {
 		return err
 	}
@@ -297,7 +309,9 @@ func (ss *sqlStore) loginConflict(ctx context.Context, sess *db.Session, login, 
 		login = strings.ToLower(login)
 		email = strings.ToLower(email)
 	}
-
+	if ss.dialect.DriverName() == "dm" {
+		where = strings.ReplaceAll(where, "login", `"login"`)
+	}
 	exists, err := sess.Where(where, email, login).Get(&user.User{})
 	if err != nil {
 		return err
@@ -404,6 +418,26 @@ func (ss *sqlStore) GetSignedInUser(ctx context.Context, query *user.GetSignedIn
 		LEFT OUTER JOIN org_user on org_user.org_id = ` + orgId + ` and org_user.user_id = u.id
 		LEFT OUTER JOIN org on org.id = org_user.org_id `
 
+		if ss.dialect.DriverName() == "dm" {
+			rawSQL = `SELECT
+		u.id                  as user_id,
+		u.uid                 as user_uid,
+		u.is_admin            as is_grafana_admin,
+		u.email               as email,
+		u."login"               as "login",
+		u.name                as name,
+		u.is_disabled         as is_disabled,
+		u.help_flags1         as help_flags1,
+		u.last_seen_at        as last_seen_at,
+		org.name              as org_name,
+		org_user.role         as org_role,
+		org.id                as org_id,
+		u.is_service_account  as is_service_account
+		FROM ` + ss.dialect.Quote("user") + ` as u
+		LEFT OUTER JOIN org_user on org_user.org_id = ` + orgId + ` and org_user.user_id = u.id
+		LEFT OUTER JOIN org on org.id = org_user.org_id `
+		}
+
 		sess := dbSess.Table("user")
 		sess = sess.Context(ctx)
 		switch {
@@ -411,9 +445,17 @@ func (ss *sqlStore) GetSignedInUser(ctx context.Context, query *user.GetSignedIn
 			sess.SQL(rawSQL+"WHERE u.id=?", query.UserID)
 		case query.Login != "":
 			if ss.cfg.CaseInsensitiveLogin {
-				sess.SQL(rawSQL+"WHERE LOWER(u.login)=LOWER(?)", query.Login)
+				addSQL := "WHERE LOWER(u.login)=LOWER(?)"
+				if ss.dialect.DriverName() == "dm" {
+					addSQL = strings.ReplaceAll(addSQL, "login", `"login"`)
+				}
+				sess.SQL(rawSQL+addSQL, query.Login)
 			} else {
-				sess.SQL(rawSQL+"WHERE u.login=?", query.Login)
+				addSQL := "WHERE u.login=?"
+				if ss.dialect.DriverName() == "dm" {
+					addSQL = strings.ReplaceAll(addSQL, "login", `"login"`)
+				}
+				sess.SQL(rawSQL+addSQL, query.Login)
 			}
 		case query.Email != "":
 			if ss.cfg.CaseInsensitiveLogin {
@@ -640,7 +682,11 @@ func (ss *sqlStore) Search(ctx context.Context, query *user.SearchUsersQuery) (*
 		whereParams = append(whereParams, acFilter.Args...)
 
 		if query.Query != "" {
-			whereConditions = append(whereConditions, "(email "+ss.dialect.LikeStr()+" ? OR name "+ss.dialect.LikeStr()+" ? OR login "+ss.dialect.LikeStr()+" ?)")
+			loginStr := " ? OR login "
+			if ss.dialect.DriverName() == "dm" {
+				loginStr = strings.ReplaceAll(loginStr, "login", `"login"`)
+			}
+			whereConditions = append(whereConditions, "(email "+ss.dialect.LikeStr()+" ? OR name "+ss.dialect.LikeStr()+loginStr+ss.dialect.LikeStr()+" ?)")
 			whereParams = append(whereParams, queryWithWildcards, queryWithWildcards, queryWithWildcards)
 		}
 
@@ -674,8 +720,12 @@ func (ss *sqlStore) Search(ctx context.Context, query *user.SearchUsersQuery) (*
 			offset := query.Limit * (query.Page - 1)
 			sess.Limit(query.Limit, offset)
 		}
+		if ss.dialect.DriverName() == "dm" {
+			sess.Cols("u.id", "u.email", "u.name", `u."login"`, "u.is_admin", "u.is_disabled", "u.last_seen_at", "user_auth.auth_module")
 
-		sess.Cols("u.id", "u.email", "u.name", "u.login", "u.is_admin", "u.is_disabled", "u.last_seen_at", "user_auth.auth_module")
+		} else {
+			sess.Cols("u.id", "u.email", "u.name", "u.login", "u.is_admin", "u.is_disabled", "u.last_seen_at", "user_auth.auth_module")
+		}
 
 		if len(query.SortOpts) > 0 {
 			for i := range query.SortOpts {
@@ -684,7 +734,12 @@ func (ss *sqlStore) Search(ctx context.Context, query *user.SearchUsersQuery) (*
 				}
 			}
 		} else {
-			sess.Asc("u.login", "u.email")
+			if ss.dialect.DriverName() == "dm" {
+				sess.Asc(`u."login"`, "u.email")
+			} else {
+				sess.Asc("u.login", "u.email")
+			}
+
 		}
 
 		if err := sess.Find(&result.Users); err != nil {

@@ -511,6 +511,9 @@ func (s *Service) uidMigration(store db.DB) error {
 		case migrator.MySQL:
 			_, err := sess.Exec("UPDATE user SET uid=concat('u',lpad(id,9,'0')) WHERE uid IS NULL;")
 			return err
+		case migrator.DM:
+			_, err := sess.Exec(`UPDATE "user" SET uid='u' || lpad('' || id::text,9,'0') WHERE uid IS NULL;`)
+			return err
 		default:
 			// this branch should be unreachable
 			return nil

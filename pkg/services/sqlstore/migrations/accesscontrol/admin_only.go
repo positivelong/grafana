@@ -37,7 +37,7 @@ func (m *adminOnlyMigrator) Exec(sess *xorm.Session, mg *migrator.Migrator) erro
 	FROM (SELECT dashboard.id, dashboard.uid, dashboard.is_folder, dashboard.org_id, count(dashboard_acl.id) as count
 		  FROM dashboard
 				LEFT JOIN dashboard_acl ON dashboard.id = dashboard_acl.dashboard_id
-		  WHERE dashboard.has_acl IS TRUE
+		  WHERE dashboard.has_acl = 1
 		  GROUP BY dashboard.id) as res
 	WHERE res.count = 0
 	`

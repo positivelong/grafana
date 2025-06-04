@@ -101,6 +101,21 @@ func (s *Service) DBMigration(db db.DB) {
 				SELECT uid, org_id, title, created, updated FROM dashboard WHERE is_folder = true
 				ON CONFLICT(uid, org_id) DO UPDATE SET title=excluded.title, updated=excluded.updated
 			`)
+		} else if db.GetDialect().DriverName() == migrator.DM {
+			_, err = sess.Exec(`MERGE INTO folder f
+USING (
+    SELECT uid, org_id, title, created, updated
+    FROM dashboard
+    WHERE is_folder = 1
+) d
+ON (f.uid = d.uid AND f.org_id = d.org_id)
+WHEN MATCHED THEN
+    UPDATE SET
+        f.title = d.title,
+        f.updated = d.updated
+WHEN NOT MATCHED THEN
+    INSERT (uid, org_id, title, created, updated)
+    VALUES (d.uid, d.org_id, d.title, d.created, d.updated);`)
 		} else {
 			// covered by UQE_folder_org_id_uid
 			_, err = sess.Exec(`
@@ -116,7 +131,7 @@ func (s *Service) DBMigration(db db.DB) {
 		// covered by UQE_folder_org_id_uid
 		_, err = sess.Exec(`
 			DELETE FROM folder WHERE NOT EXISTS
-				(SELECT 1 FROM dashboard WHERE dashboard.uid = folder.uid AND dashboard.org_id = folder.org_id AND dashboard.is_folder = true)
+				(SELECT 1 FROM dashboard WHERE dashboard.uid = folder.uid AND dashboard.org_id = folder.org_id AND dashboard.is_folder = 1)
 		`)
 		return err
 	})

@@ -36,11 +36,11 @@ func (p *ServiceAccountsSameLoginCrossOrgs) Exec(sess *xorm.Session, mg *migrato
 	switch p.dialect.DriverName() {
 	case migrator.Postgres:
 		_, err = p.sess.Exec(`UPDATE "user"
-		SET login = 'sa-' || org_id::text || '-' || 
-		CASE 
-		  WHEN login LIKE 'sa-%' THEN SUBSTRING(login FROM 4) 
-		  ELSE login 
-		END 
+		SET login = 'sa-' || org_id::text || '-' ||
+		CASE
+		  WHEN login LIKE 'sa-%' THEN SUBSTRING(login FROM 4)
+		  ELSE login
+		END
 		WHERE login IS NOT NULL AND is_service_account = true;`,
 		)
 	case migrator.MySQL:
@@ -60,6 +60,15 @@ func (p *ServiceAccountsSameLoginCrossOrgs) Exec(sess *xorm.Session, mg *migrato
 			ELSE login
 		END
 		WHERE login IS NOT NULL AND is_service_account = 1;`,
+		)
+	case migrator.DM:
+		_, err = p.sess.Exec(`UPDATE "user"
+		SET "login" = 'sa-' || org_id::text || '-' ||
+		CASE
+		  WHEN "login" LIKE 'sa-%' THEN SUBSTRING("login" FROM 4)
+		  ELSE "login"
+		END
+		WHERE "login" IS NOT NULL AND is_service_account = 1;`,
 		)
 	default:
 		return fmt.Errorf("dialect not supported: %s", p.dialect)

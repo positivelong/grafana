@@ -55,6 +55,11 @@ func NewScopedMigrator(engine *xorm.Engine, cfg *setting.Cfg, scope string) *Mig
 		migrationIds: make(map[string]struct{}),
 		Dialect:      NewDialect(engine.DriverName()),
 	}
+	if engine.DriverName() == "dm" {
+		if d, ok := mg.Dialect.(*DmDialect); ok {
+			d.Schema = engine.Dialect().URI().Schema
+		}
+	}
 	if scope == "" {
 		mg.tableName = "migration_log"
 		mg.Logger = log.New("migrator")

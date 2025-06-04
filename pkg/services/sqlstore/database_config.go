@@ -201,6 +201,9 @@ func (dbCfg *DatabaseConfig) buildConnectionString(cfg *setting.Cfg, features fe
 		}
 
 		cnnstr += buildExtraConnectionString('&', dbCfg.UrlQueryParams)
+	case migrator.DM:
+		cnnstr = fmt.Sprintf("dm://%s:%s@%s?schema=%s", dbCfg.User, dbCfg.Pwd, dbCfg.Host, dbCfg.Name)
+		cnnstr += buildExtraConnectionString('&', dbCfg.UrlQueryParams)
 	default:
 		return fmt.Errorf("unknown database type: %s", dbCfg.Type)
 	}
