@@ -125,7 +125,7 @@ func addDataSourceMigration(mg *Migrator) {
 		NewRawSQLMigration("").
 			SQLite("UPDATE data_source SET uid=printf('%09d',id);").
 			Postgres("UPDATE data_source SET uid=lpad('' || id::text,9,'0');").
-			Mysql("UPDATE data_source SET uid=lpad(id,9,'0');"),
+			Mysql("UPDATE data_source SET uid=lpad(id,9,'0');").OceanBase("UPDATE data_source SET uid=lpad(id,9,'0');"),
 	)
 
 	mg.AddMigration("Add unique index datasource_org_id_uid", NewAddIndexMigration(tableV2, &Index{

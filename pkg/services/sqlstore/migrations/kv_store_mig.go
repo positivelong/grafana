@@ -30,5 +30,5 @@ func addKVStoreMigrations(mg *Migrator) {
 // MySQL to be more inline size-wise with PSQL (TEXT) and SQLite.
 func addKVStoreMySQLValueTypeLongTextMigration(mg *Migrator) {
 	mg.AddMigration("alter kv_store.value to longtext", NewRawSQLMigration("").
-		Mysql("ALTER TABLE kv_store MODIFY value LONGTEXT NOT NULL;"))
+		Mysql("ALTER TABLE kv_store MODIFY value LONGTEXT NOT NULL;").OceanBase("ALTER TABLE kv_store MODIFY value LONGTEXT NOT NULL;"))
 }

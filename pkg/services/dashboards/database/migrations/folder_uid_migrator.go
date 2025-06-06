@@ -33,7 +33,7 @@ func (m *FolderUIDMigration) Exec(sess *xorm.Session, mgrtr *migrator.Migrator) 
 	FROM dashboard folder
 	WHERE dashboard.folder_id = folder.id
 	  AND dashboard.is_folder = ?`
-	if mgrtr.Dialect.DriverName() == migrator.MySQL || mgrtr.Dialect.DriverName() == migrator.DM {
+	if mgrtr.Dialect.DriverName() == migrator.MySQL || mgrtr.Dialect.DriverName() == migrator.OceanBase || mgrtr.Dialect.DriverName() == migrator.DM {
 		q = `UPDATE dashboard AS d
 		LEFT JOIN dashboard AS folder ON d.folder_id = folder.id
 		SET d.folder_uid = folder.uid
@@ -59,7 +59,7 @@ func (m *FolderUIDMigration) Exec(sess *xorm.Session, mgrtr *migrator.Migrator) 
 	AND dashboard.is_folder = ?`
 
 	// covered by UQE_folder_org_id_uid
-	if mgrtr.Dialect.DriverName() == migrator.MySQL {
+	if mgrtr.Dialect.DriverName() == migrator.MySQL || mgrtr.Dialect.DriverName() == migrator.OceanBase {
 		q = `UPDATE dashboard
 		SET folder_uid = (
 		    SELECT folder.parent_uid

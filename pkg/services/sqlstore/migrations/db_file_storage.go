@@ -66,5 +66,5 @@ func addDbFileStorageMigration(mg *migrator.Migrator) {
 		Postgres("ALTER TABLE file ALTER COLUMN path TYPE VARCHAR(1024) COLLATE \"C\";")) // Collate C - sorting done based on character code byte values
 
 	mg.AddMigration("migrate contents column to mediumblob for MySQL", migrator.NewRawSQLMigration("").
-		Mysql("ALTER TABLE file MODIFY contents MEDIUMBLOB;"))
+		Mysql("ALTER TABLE file MODIFY contents MEDIUMBLOB;").OceanBase("ALTER TABLE file MODIFY contents MEDIUMBLOB;"))
 }

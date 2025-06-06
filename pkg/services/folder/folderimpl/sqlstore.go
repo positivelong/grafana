@@ -575,7 +575,7 @@ func (ss *sqlStore) GetDescendants(ctx context.Context, orgID int64, ancestor_ui
 
 func getFullpathSQL(dialect migrator.Dialect) string {
 	escaped := "\\/"
-	if dialect.DriverName() == migrator.MySQL {
+	if dialect.DriverName() == migrator.MySQL || dialect.DriverName() == migrator.OceanBase {
 		escaped = "\\\\/"
 	}
 	concatCols := make([]string, 0, folder.MaxNestedFolderDepth)

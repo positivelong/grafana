@@ -106,14 +106,16 @@ type LockCfg struct {
 type dialectFunc func() Dialect
 
 var supportedDialects = map[string]dialectFunc{
-	MySQL:                  NewMysqlDialect,
-	SQLite:                 NewSQLite3Dialect,
-	Postgres:               NewPostgresDialect,
-	DM:                     NewDmDialect,
-	MySQL + "WithHooks":    NewMysqlDialect,
-	SQLite + "WithHooks":   NewSQLite3Dialect,
-	Postgres + "WithHooks": NewPostgresDialect,
-	DM + "WithHooks":       NewDmDialect,
+	MySQL:                   NewMysqlDialect,
+	SQLite:                  NewSQLite3Dialect,
+	Postgres:                NewPostgresDialect,
+	DM:                      NewDmDialect,
+	OceanBase:               NewOceanBaseDialect,
+	MySQL + "WithHooks":     NewMysqlDialect,
+	SQLite + "WithHooks":    NewSQLite3Dialect,
+	Postgres + "WithHooks":  NewPostgresDialect,
+	DM + "WithHooks":        NewDmDialect,
+	OceanBase + "WithHooks": NewOceanBaseDialect,
 }
 
 func NewDialect(driverName string) Dialect {

@@ -24,7 +24,7 @@ func dbCollector(sql db.DB) supportbundles.Collector {
 		version := []string{}
 		err := sql.WithDbSession(ctx, func(sess *db.Session) error {
 			rawSQL := ""
-			if dbType == migrator.MySQL {
+			if dbType == migrator.MySQL || dbType == migrator.OceanBase {
 				rawSQL = "SELECT @@VERSION"
 			} else if dbType == migrator.Postgres {
 				rawSQL = "SELECT version()"

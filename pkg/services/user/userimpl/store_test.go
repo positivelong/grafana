@@ -261,8 +261,8 @@ func TestIntegrationUserDataAccess(t *testing.T) {
 	})
 
 	t.Run("Testing DB - error on case insensitive conflict", func(t *testing.T) {
-		if ss.GetDBType() == migrator.MySQL {
-			t.Skip("Skipping on MySQL due to case insensitive indexes")
+		if ss.GetDBType() == migrator.MySQL || ss.GetDBType() == migrator.OceanBase {
+			t.Skip("Skipping on MySQL or OceanBase due to case insensitive indexes")
 		}
 		userStore.cfg.CaseInsensitiveLogin = true
 		cmd := user.CreateUserCommand{

@@ -27,6 +27,6 @@ func addQueryHistoryMigrations(mg *Migrator) {
 	mg.AddMigration("add index query_history.org_id-created_by-datasource_uid", NewAddIndexMigration(queryHistoryV1, queryHistoryV1.Indices[0]))
 
 	mg.AddMigration("alter table query_history alter column created_by type to bigint", NewRawSQLMigration("").
-		Mysql("ALTER TABLE query_history MODIFY created_by BIGINT;").
+		Mysql("ALTER TABLE query_history MODIFY created_by BIGINT;").OceanBase("ALTER TABLE query_history MODIFY created_by BIGINT;").
 		Postgres("ALTER TABLE query_history ALTER COLUMN created_by TYPE BIGINT;"))
 }

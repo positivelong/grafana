@@ -41,7 +41,7 @@ func (m *permissionMigrator) bulkCreateRoles(allRoles []*accesscontrol.Role) ([]
 	allCreatedRoles := make([]*accesscontrol.Role, 0, len(allRoles))
 
 	createRoles := m.createRoles
-	if m.dialect.DriverName() == migrator.MySQL {
+	if m.dialect.DriverName() == migrator.MySQL || m.dialect.DriverName() == migrator.OceanBase {
 		createRoles = m.createRolesMySQL
 	}
 

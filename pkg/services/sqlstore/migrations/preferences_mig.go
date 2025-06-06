@@ -43,7 +43,7 @@ func addPreferencesMigrations(mg *Migrator) {
 	mg.AddMigration("Update team_id column values in preferences", NewRawSQLMigration("").
 		SQLite("UPDATE preferences SET team_id=0 WHERE team_id IS NULL;").
 		Postgres("UPDATE preferences SET team_id=0 WHERE team_id IS NULL;").
-		Mysql("UPDATE preferences SET team_id=0 WHERE team_id IS NULL;"))
+		Mysql("UPDATE preferences SET team_id=0 WHERE team_id IS NULL;").OceanBase("UPDATE preferences SET team_id=0 WHERE team_id IS NULL;"))
 
 	mg.AddMigration("Add column week_start in preferences", NewAddColumnMigration(preferencesV2, &Column{
 		Name: "week_start", Type: DB_NVarchar, Length: 10, Nullable: true,
@@ -54,7 +54,7 @@ func addPreferencesMigrations(mg *Migrator) {
 	}))
 	// change column type of preferences.json_data
 	mg.AddMigration("alter preferences.json_data to mediumtext v1", NewRawSQLMigration("").
-		Mysql("ALTER TABLE preferences MODIFY json_data MEDIUMTEXT;"))
+		Mysql("ALTER TABLE preferences MODIFY json_data MEDIUMTEXT;").OceanBase("ALTER TABLE preferences MODIFY json_data MEDIUMTEXT;"))
 
 	mg.AddMigration("Add preferences index org_id", NewAddIndexMigration(preferencesV2, preferencesV2.Indices[0]))
 	mg.AddMigration("Add preferences index user_id", NewAddIndexMigration(preferencesV2, preferencesV2.Indices[1]))

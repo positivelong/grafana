@@ -86,7 +86,7 @@ func addAlertDefinitionMigrations(mg *migrator.Migrator, defaultIntervalSeconds 
 	mg.AddMigration("add index in alert_definition on org_id and uid columns", migrator.NewAddIndexMigration(alertDefinition, alertDefinition.Indices[1]))
 
 	mg.AddMigration("alter alert_definition table data column to mediumtext in mysql", migrator.NewRawSQLMigration("").
-		Mysql("ALTER TABLE alert_definition MODIFY data MEDIUMTEXT;"))
+		Mysql("ALTER TABLE alert_definition MODIFY data MEDIUMTEXT;").OceanBase("ALTER TABLE alert_definition MODIFY data MEDIUMTEXT;"))
 
 	mg.AddMigration("drop index in alert_definition on org_id and title columns", migrator.NewDropIndexMigration(alertDefinition, alertDefinition.Indices[0]))
 	mg.AddMigration("drop index in alert_definition on org_id and uid columns", migrator.NewDropIndexMigration(alertDefinition, alertDefinition.Indices[1]))
@@ -135,7 +135,7 @@ func addAlertDefinitionVersionMigrations(mg *migrator.Migrator) {
 	mg.AddMigration("add index in alert_definition_version table on alert_definition_uid and version columns", migrator.NewAddIndexMigration(alertDefinitionVersion, alertDefinitionVersion.Indices[1]))
 
 	mg.AddMigration("alter alert_definition_version table data column to mediumtext in mysql", migrator.NewRawSQLMigration("").
-		Mysql("ALTER TABLE alert_definition_version MODIFY data MEDIUMTEXT;"))
+		Mysql("ALTER TABLE alert_definition_version MODIFY data MEDIUMTEXT;").OceanBase("ALTER TABLE alert_definition_version MODIFY data MEDIUMTEXT;"))
 	mg.AddMigration("drop alert_definition_version table", migrator.NewDropTableMigration("alert_definition_version"))
 }
 
@@ -172,11 +172,11 @@ func alertInstanceMigration(mg *migrator.Migrator) {
 
 	mg.AddMigration("rename def_org_id to rule_org_id in alert_instance", migrator.NewRawSQLMigration("").
 		Default("ALTER TABLE alert_instance RENAME COLUMN def_org_id TO rule_org_id;").
-		Mysql("ALTER TABLE alert_instance CHANGE def_org_id rule_org_id BIGINT;"))
+		Mysql("ALTER TABLE alert_instance CHANGE def_org_id rule_org_id BIGINT;").OceanBase("ALTER TABLE alert_instance CHANGE def_org_id rule_org_id BIGINT;"))
 
 	mg.AddMigration("rename def_uid to rule_uid in alert_instance", migrator.NewRawSQLMigration("").
 		Default("ALTER TABLE alert_instance RENAME COLUMN def_uid TO rule_uid;").
-		Mysql("ALTER TABLE alert_instance CHANGE def_uid rule_uid VARCHAR(40);"))
+		Mysql("ALTER TABLE alert_instance CHANGE def_uid rule_uid VARCHAR(40);").OceanBase("ALTER TABLE alert_instance CHANGE def_uid rule_uid VARCHAR(40);"))
 
 	mg.AddMigration("add index rule_org_id, rule_uid, current_state on alert_instance", migrator.NewAddIndexMigration(alertInstance, &migrator.Index{
 		Cols: []string{"rule_org_id", "rule_uid", "current_state"}, Type: migrator.IndexType,
@@ -230,7 +230,7 @@ func addAlertRuleMigrations(mg *migrator.Migrator, defaultIntervalSeconds int64)
 	mg.AddMigration("add index in alert_rule on org_id, namespace_uid, group_uid columns", migrator.NewAddIndexMigration(alertRule, alertRule.Indices[2]))
 
 	mg.AddMigration("alter alert_rule table data column to mediumtext in mysql", migrator.NewRawSQLMigration("").
-		Mysql("ALTER TABLE alert_rule MODIFY data MEDIUMTEXT;"))
+		Mysql("ALTER TABLE alert_rule MODIFY data MEDIUMTEXT;").OceanBase("ALTER TABLE alert_rule MODIFY data MEDIUMTEXT;"))
 
 	// add for column
 	mg.AddMigration("add column for to alert_rule", migrator.NewAddColumnMigration(alertRule, &migrator.Column{Name: "for", Type: migrator.DB_BigInt, Nullable: false, Default: "0"}))
@@ -334,7 +334,7 @@ func addAlertRuleVersionMigrations(mg *migrator.Migrator) {
 	mg.AddMigration("add index in alert_rule_version table on rule_org_id, rule_namespace_uid and rule_group columns", migrator.NewAddIndexMigration(alertRuleVersion, alertRuleVersion.Indices[1]))
 
 	mg.AddMigration("alter alert_rule_version table data column to mediumtext in mysql", migrator.NewRawSQLMigration("").
-		Mysql("ALTER TABLE alert_rule_version MODIFY data MEDIUMTEXT;"))
+		Mysql("ALTER TABLE alert_rule_version MODIFY data MEDIUMTEXT;").OceanBase("ALTER TABLE alert_rule_version MODIFY data MEDIUMTEXT;"))
 
 	// add for column
 	mg.AddMigration("add column for to alert_rule_version", migrator.NewAddColumnMigration(alertRuleVersion, &migrator.Column{Name: "for", Type: migrator.DB_BigInt, Nullable: false, Default: "0"}))
@@ -389,7 +389,7 @@ func addAlertmanagerConfigMigrations(mg *migrator.Migrator) {
 	}))
 
 	mg.AddMigration("alert alert_configuration alertmanager_configuration column from TEXT to MEDIUMTEXT if mysql", migrator.NewRawSQLMigration("").
-		Mysql("ALTER TABLE alert_configuration MODIFY alertmanager_configuration MEDIUMTEXT;"))
+		Mysql("ALTER TABLE alert_configuration MODIFY alertmanager_configuration MEDIUMTEXT;").OceanBase("ALTER TABLE alert_configuration MODIFY alertmanager_configuration MEDIUMTEXT;"))
 
 	mg.AddMigration("add column org_id in alert_configuration", migrator.NewAddColumnMigration(alertConfiguration, &migrator.Column{
 		Name: "org_id", Type: migrator.DB_BigInt, Nullable: false, Default: "0",
@@ -492,7 +492,7 @@ func addAlertImageMigrations(mg *migrator.Migrator) {
 
 	mg.AddMigration("support longer URLs in alert_image table", migrator.NewRawSQLMigration("").
 		Postgres("ALTER TABLE alert_image ALTER COLUMN url TYPE VARCHAR(2048);").
-		Mysql("ALTER TABLE alert_image MODIFY url VARCHAR(2048) NOT NULL;"))
+		Mysql("ALTER TABLE alert_image MODIFY url VARCHAR(2048) NOT NULL;").OceanBase("ALTER TABLE alert_image MODIFY url VARCHAR(2048) NOT NULL;"))
 }
 
 func extractAlertmanagerConfigurationHistoryMigration(mg *migrator.Migrator) {

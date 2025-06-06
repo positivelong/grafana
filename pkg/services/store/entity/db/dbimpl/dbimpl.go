@@ -84,14 +84,18 @@ func (db *EntityDB) GetEngine() (*xorm.Engine, error) {
 				db.log.Error("error connecting to postgres", "msg", err.Error())
 				// FIXME: return nil, err
 			}
-		} else if dbType == "mysql" {
+		} else if dbType == "mysql" || dbType == "oceanbase" {
 			// TODO: support all mysql connection options
 			protocol := "tcp"
 			if strings.HasPrefix(dbHost, "/") {
 				protocol = "unix"
 			}
-
-			connectionString := fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_unicode_ci&allowNativePasswords=true&clientFoundRows=true",
+			var connectionString string
+			if dbType == "oceanbase" {
+				connectionString = fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_general_ci&allowNativePasswords=true&clientFoundRows=true",
+					dbUser, dbPass, protocol, dbHost, dbName)
+			}
+			connectionString = fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_unicode_ci&allowNativePasswords=true&clientFoundRows=true",
 				dbUser, dbPass, protocol, dbHost, dbName)
 
 			engine, err = xorm.NewEngine("mysql", connectionString)

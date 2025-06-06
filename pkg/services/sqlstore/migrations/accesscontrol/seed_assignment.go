@@ -32,7 +32,8 @@ func AddSeedAssignmentMigrations(mg *migrator.Migrator) {
 		migrator.NewRawSQLMigration("").
 			SQLite(migSQLITERoleNameNullable).
 			Postgres("ALTER TABLE `seed_assignment` ALTER COLUMN role_name DROP NOT NULL;").
-			Mysql("ALTER TABLE seed_assignment MODIFY role_name VARCHAR(190) DEFAULT NULL;"))
+			Mysql("ALTER TABLE seed_assignment MODIFY role_name VARCHAR(190) DEFAULT NULL;").
+			OceanBase("ALTER TABLE seed_assignment MODIFY role_name VARCHAR(190) DEFAULT NULL;"))
 
 	mg.AddMigration("add unique index builtin_role_name back",
 		migrator.NewAddIndexMigration(seedAssignmentTable,
@@ -64,6 +65,13 @@ func (m *seedAssignmentPrimaryKeyMigrator) Exec(sess *xorm.Session, mig *migrato
 	driver := mig.Dialect.DriverName()
 	if driver == migrator.MySQL {
 		_, err := sess.Exec("ALTER TABLE seed_assignment ADD id INT NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (id)")
+		return err
+	} else if driver == migrator.OceanBase {
+		_, err := sess.Exec("ALTER TABLE seed_assignment ADD id INT NOT NULL AUTO_INCREMENT FIRST")
+		if err != nil {
+			return err
+		}
+		_, err = sess.Exec("ALTER TABLE seed_assignment ADD PRIMARY KEY (id)")
 		return err
 	} else if driver == migrator.Postgres {
 		_, err := sess.Exec("ALTER TABLE seed_assignment ADD COLUMN id SERIAL PRIMARY KEY")

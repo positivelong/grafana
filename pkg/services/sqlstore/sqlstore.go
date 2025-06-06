@@ -270,7 +270,6 @@ func (ss *SQLStore) initEngine(engine *xorm.Engine) error {
 	}
 
 	ss.log.Info("Connecting to DB", "dbtype", ss.dbCfg.Type)
-	ss.log.Info("conn_str:", ss.dbCfg.ConnectionString)
 	if ss.dbCfg.Type == migrator.SQLite && strings.HasPrefix(ss.dbCfg.ConnectionString, "file:") &&
 		!strings.HasPrefix(ss.dbCfg.ConnectionString, "file::memory:") {
 		exists, err := fs.Exists(ss.dbCfg.Path)
@@ -308,7 +307,7 @@ func (ss *SQLStore) initEngine(engine *xorm.Engine) error {
 		}
 		// Only for MySQL or MariaDB, verify we can connect with the current connection string's system var for transaction isolation.
 		// If not, create a new engine with a compatible connection string.
-		if ss.dbCfg.Type == migrator.MySQL {
+		if ss.dbCfg.Type == migrator.MySQL || ss.dbCfg.Type == migrator.OceanBase {
 			engine, err = ss.ensureTransactionIsolationCompatibility(engine, ss.dbCfg.ConnectionString)
 			if err != nil {
 				return err

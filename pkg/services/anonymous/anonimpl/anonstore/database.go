@@ -155,7 +155,7 @@ client_ip = $2,
 user_agent = $3,
 updated_at = $5
 RETURNING id`
-	case migrator.MySQL:
+	case migrator.MySQL, migrator.OceanBase:
 		query = `INSERT INTO anon_device (device_id, client_ip, user_agent, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?)
 ON DUPLICATE KEY UPDATE

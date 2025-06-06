@@ -131,14 +131,18 @@ func (dbCfg *DatabaseConfig) buildConnectionString(cfg *setting.Cfg, features fe
 	cnnstr := ""
 
 	switch dbCfg.Type {
-	case migrator.MySQL:
+	case migrator.MySQL, migrator.OceanBase:
 		protocol := "tcp"
 		if strings.HasPrefix(dbCfg.Host, "/") {
 			protocol = "unix"
 		}
-
-		cnnstr = fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_unicode_ci&allowNativePasswords=true&clientFoundRows=true",
-			dbCfg.User, dbCfg.Pwd, protocol, dbCfg.Host, dbCfg.Name)
+		if dbCfg.Type == migrator.OceanBase {
+			cnnstr = fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_general_ci&allowNativePasswords=true&clientFoundRows=true",
+				dbCfg.User, dbCfg.Pwd, protocol, dbCfg.Host, dbCfg.Name)
+		} else {
+			cnnstr = fmt.Sprintf("%s:%s@%s(%s)/%s?collation=utf8mb4_unicode_ci&allowNativePasswords=true&clientFoundRows=true",
+				dbCfg.User, dbCfg.Pwd, protocol, dbCfg.Host, dbCfg.Name)
+		}
 
 		if dbCfg.SslMode == "true" || dbCfg.SslMode == "skip-verify" {
 			tlsCert, err := makeCert(dbCfg)
@@ -201,7 +205,8 @@ func (dbCfg *DatabaseConfig) buildConnectionString(cfg *setting.Cfg, features fe
 		}
 
 		cnnstr += buildExtraConnectionString('&', dbCfg.UrlQueryParams)
-	case migrator.DM:
+	case migrator.DM, "dmsql":
+		dbCfg.Type = migrator.DM
 		cnnstr = fmt.Sprintf("dm://%s:%s@%s?schema=%s", dbCfg.User, dbCfg.Pwd, dbCfg.Host, dbCfg.Name)
 		cnnstr += buildExtraConnectionString('&', dbCfg.UrlQueryParams)
 	default:

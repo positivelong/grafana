@@ -43,7 +43,7 @@ func (p *ServiceAccountsSameLoginCrossOrgs) Exec(sess *xorm.Session, mg *migrato
 		END
 		WHERE login IS NOT NULL AND is_service_account = true;`,
 		)
-	case migrator.MySQL:
+	case migrator.MySQL, migrator.OceanBase:
 		_, err = p.sess.Exec(`UPDATE user
 		SET login = CONCAT('sa-', CAST(org_id AS CHAR), '-',
 		CASE

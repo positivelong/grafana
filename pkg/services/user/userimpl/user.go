@@ -508,7 +508,7 @@ func (s *Service) uidMigration(store db.DB) error {
 		case migrator.Postgres:
 			_, err := sess.Exec("UPDATE `user` SET uid='u' || lpad('' || id::text,9,'0') WHERE uid IS NULL;")
 			return err
-		case migrator.MySQL:
+		case migrator.MySQL, migrator.OceanBase:
 			_, err := sess.Exec("UPDATE user SET uid=concat('u',lpad(id,9,'0')) WHERE uid IS NULL;")
 			return err
 		case migrator.DM:

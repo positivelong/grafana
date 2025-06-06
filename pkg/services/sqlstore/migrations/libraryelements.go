@@ -60,14 +60,14 @@ func addLibraryElementsMigrations(mg *migrator.Migrator) {
 	}))
 
 	mg.AddMigration("alter library_element model to mediumtext", migrator.NewRawSQLMigration("").
-		Mysql("ALTER TABLE library_element MODIFY model MEDIUMTEXT NOT NULL;"))
+		Mysql("ALTER TABLE library_element MODIFY model MEDIUMTEXT NOT NULL;").OceanBase("ALTER TABLE library_element MODIFY model MEDIUMTEXT NOT NULL;"))
 
 	q := `UPDATE library_element
 	SET folder_uid = dashboard.uid
 	FROM dashboard
 	WHERE library_element.folder_id = dashboard.id AND library_element.org_id = dashboard.org_id`
 
-	if mg.Dialect.DriverName() == migrator.MySQL {
+	if mg.Dialect.DriverName() == migrator.MySQL || mg.Dialect.DriverName() == migrator.OceanBase {
 		q = `UPDATE library_element
 		SET folder_uid = (
 			SELECT dashboard.uid

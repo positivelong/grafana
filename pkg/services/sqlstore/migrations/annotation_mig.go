@@ -182,7 +182,7 @@ func addAnnotationMig(mg *Migrator) {
 
 	mg.AddMigration("Increase tags column to length 4096", NewRawSQLMigration("").
 		Postgres("ALTER TABLE annotation ALTER COLUMN tags TYPE VARCHAR(4096);").
-		Mysql("ALTER TABLE annotation MODIFY tags VARCHAR(4096);"))
+		Mysql("ALTER TABLE annotation MODIFY tags VARCHAR(4096);").OceanBase("ALTER TABLE annotation MODIFY tags VARCHAR(4096);"))
 }
 
 type AddMakeRegionSingleRowMigration struct {

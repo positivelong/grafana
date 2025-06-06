@@ -26,6 +26,6 @@ func addQueryHistoryStarMigrations(mg *Migrator) {
 	}))
 
 	mg.AddMigration("alter table query_history_star_mig column user_id type to bigint", NewRawSQLMigration("").
-		Mysql("ALTER TABLE query_history_star MODIFY user_id BIGINT;").
+		Mysql("ALTER TABLE query_history_star MODIFY user_id BIGINT;").OceanBase("ALTER TABLE query_history_star MODIFY user_id BIGINT;").
 		Postgres("ALTER TABLE query_history_star ALTER COLUMN user_id TYPE BIGINT;"))
 }

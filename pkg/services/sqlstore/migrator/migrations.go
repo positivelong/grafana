@@ -76,6 +76,9 @@ func (m *RawSQLMigration) SQLite(sql string) *RawSQLMigration {
 func (m *RawSQLMigration) Mysql(sql string) *RawSQLMigration {
 	return m.Set(MySQL, sql)
 }
+func (m *RawSQLMigration) OceanBase(sql string) *RawSQLMigration {
+	return m.Set(OceanBase, sql)
+}
 
 func (m *RawSQLMigration) Postgres(sql string) *RawSQLMigration {
 	return m.Set(Postgres, sql)
