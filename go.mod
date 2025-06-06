@@ -77,7 +77,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // @grafana/alerting-squad-backend
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/alertmanager v0.26.0 // @grafana/alerting-squad-backend
 	github.com/prometheus/client_golang v1.21.1 // @grafana/alerting-squad-backend
 	github.com/prometheus/client_model v0.6.1 // @grafana/backend-platform
@@ -450,10 +450,14 @@ require github.com/spyzhov/ajson v0.9.0 // @grafana/grafana-app-platform-squad
 require github.com/fullstorydev/grpchan v1.1.1 // @grafana/backend-platform
 
 require (
+	gitee.com/travelliu/dm v1.8.11193-0.20230629135533-ee5bb360bd66
+	github.com/grafana/authlib/types v0.0.0-20250603144453-545505224265
+)
+
+require (
 	cloud.google.com/go/auth v0.7.2 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.3 // indirect
 	cloud.google.com/go/longrunning v0.5.11 // indirect
-	gitee.com/travelliu/dm v1.8.11192 // indirect
 	github.com/bufbuild/protocompile v0.4.0 // indirect
 	github.com/docker/docker v28.0.1+incompatible // indirect
 	github.com/gobuffalo/pop/v6 v6.1.1 // indirect
@@ -497,4 +501,5 @@ replace github.com/prometheus/alertmanager => github.com/grafana/prometheus-aler
 exclude github.com/mattn/go-sqlite3 v2.0.3+incompatible
 
 replace github.com/go-sql-driver/mysql => github.com/go-sql-driver/mysql v1.7.1
+
 replace xorm.io/xorm v0.8.2 => github.com/positivelong/xorm v0.8.4
