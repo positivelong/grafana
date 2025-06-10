@@ -30,6 +30,14 @@ const (
 	selectLibraryElementDTOWithMeta = `
 SELECT DISTINCT
 	le.name, le.id, le.org_id, le.folder_id, le.uid, le.kind, le.type, le.description, le.model, le.created, le.created_by, le.updated, le.updated_by, le.version
+	, u1.login AS created_by_name
+	, u1.email AS created_by_email
+	, u2.login AS updated_by_name
+	, u2.email AS updated_by_email
+	, (SELECT COUNT(connection_id) FROM ` + model.LibraryElementConnectionTableName + ` WHERE element_id = le.id AND kind=1) AS connected_dashboards`
+	selectLibraryElementDTOWithMetaDM = `
+SELECT DISTINCT
+	le.name, le.id, le.org_id, le.folder_id, le.uid, le.kind, le.type, le.description, le.model, le.created, le.created_by, le.updated, le.updated_by, le.version
 	, u1."login" AS created_by_name
 	, u1.email AS created_by_email
 	, u2."login" AS updated_by_name
@@ -92,12 +100,23 @@ func syncFieldsWithModel(libraryElement *model.LibraryElement) error {
 
 func GetLibraryElement(dialect migrator.Dialect, session *db.Session, uid string, orgID int64) (model.LibraryElementWithMeta, error) {
 	elements := make([]model.LibraryElementWithMeta, 0)
-	sql := selectLibraryElementDTOWithMeta +
-		", coalesce(dashboard.title, 'General') AS folder_name" +
-		", coalesce(dashboard.uid, '') AS folder_uid" +
-		getFromLibraryElementDTOWithMeta(dialect) +
-		" LEFT JOIN dashboard AS dashboard ON dashboard.id = le.folder_id" +
-		" WHERE le.uid=? AND le.org_id=?"
+	var sql string
+	if dialect.DriverName() == migrator.DM {
+		sql = selectLibraryElementDTOWithMetaDM +
+			", coalesce(dashboard.title, 'General') AS folder_name" +
+			", coalesce(dashboard.uid, '') AS folder_uid" +
+			getFromLibraryElementDTOWithMeta(dialect) +
+			" LEFT JOIN dashboard AS dashboard ON dashboard.id = le.folder_id" +
+			" WHERE le.uid=? AND le.org_id=?"
+	} else {
+		sql = selectLibraryElementDTOWithMeta +
+			", coalesce(dashboard.title, 'General') AS folder_name" +
+			", coalesce(dashboard.uid, '') AS folder_uid" +
+			getFromLibraryElementDTOWithMeta(dialect) +
+			" LEFT JOIN dashboard AS dashboard ON dashboard.id = le.folder_id" +
+			" WHERE le.uid=? AND le.org_id=?"
+	}
+
 	sess := session.SQL(sql, uid, orgID)
 	err := sess.Find(&elements)
 	if err != nil {
@@ -288,7 +307,11 @@ func (l *LibraryElementService) getLibraryElements(c context.Context, store db.D
 
 	err = store.WithDbSession(c, func(session *db.Session) error {
 		builder := db.NewSqlBuilder(cfg, features, store.GetDialect(), recursiveQueriesAreSupported)
-		builder.Write(selectLibraryElementDTOWithMeta)
+		if store.GetDBType() == migrator.DM {
+			builder.Write(selectLibraryElementDTOWithMetaDM)
+		} else {
+			builder.Write(selectLibraryElementDTOWithMeta)
+		}
 		builder.Write(", ? as folder_name ", cmd.FolderName)
 		builder.Write(", COALESCE((SELECT folder.uid FROM folder WHERE folder.id = le.folder_id), '') as folder_uid ")
 		builder.Write(getFromLibraryElementDTOWithMeta(store.GetDialect()))
@@ -296,7 +319,11 @@ func (l *LibraryElementService) getLibraryElements(c context.Context, store db.D
 		// nolint:staticcheck
 		writeParamSelectorSQL(&builder, append(params, Pair{"folder_id", cmd.FolderID})...)
 		builder.Write(" UNION ")
-		builder.Write(selectLibraryElementDTOWithMeta)
+		if store.GetDBType() == migrator.DM {
+			builder.Write(selectLibraryElementDTOWithMetaDM)
+		} else {
+			builder.Write(selectLibraryElementDTOWithMeta)
+		}
 		builder.Write(", dashboard.title as folder_name ")
 		builder.Write(", dashboard.uid as folder_uid ")
 		builder.Write(getFromLibraryElementDTOWithMeta(store.GetDialect()))
@@ -420,7 +447,12 @@ func (l *LibraryElementService) getAllLibraryElements(c context.Context, signedI
 	err = l.SQLStore.WithDbSession(c, func(session *db.Session) error {
 		builder := db.NewSqlBuilder(l.Cfg, l.features, l.SQLStore.GetDialect(), recursiveQueriesAreSupported)
 		if folderFilter.includeGeneralFolder {
-			builder.Write(selectLibraryElementDTOWithMeta)
+			if l.SQLStore.GetDBType() == migrator.DM {
+				builder.Write(selectLibraryElementDTOWithMetaDM)
+			} else {
+				builder.Write(selectLibraryElementDTOWithMeta)
+			}
+
 			builder.Write(", 'General' as folder_name ")
 			builder.Write(", '' as folder_uid ")
 			builder.Write(getFromLibraryElementDTOWithMeta(l.SQLStore.GetDialect()))
@@ -431,7 +463,11 @@ func (l *LibraryElementService) getAllLibraryElements(c context.Context, signedI
 			writeTypeFilterSQL(typeFilter, &builder)
 			builder.Write(" UNION ")
 		}
-		builder.Write(selectLibraryElementDTOWithMeta)
+		if l.SQLStore.GetDBType() == migrator.DM {
+			builder.Write(selectLibraryElementDTOWithMetaDM)
+		} else {
+			builder.Write(selectLibraryElementDTOWithMeta)
+		}
 		builder.Write(", dashboard.title as folder_name ")
 		builder.Write(", dashboard.uid as folder_uid ")
 		builder.Write(getFromLibraryElementDTOWithMeta(l.SQLStore.GetDialect()))
@@ -495,7 +531,11 @@ func (l *LibraryElementService) getAllLibraryElements(c context.Context, signedI
 		var libraryElements []model.LibraryElement
 		countBuilder := db.SQLBuilder{}
 		if folderFilter.includeGeneralFolder {
-			countBuilder.Write(selectLibraryElementDTOWithMeta)
+			if l.SQLStore.GetDBType() == migrator.DM {
+				builder.Write(selectLibraryElementDTOWithMetaDM)
+			} else {
+				builder.Write(selectLibraryElementDTOWithMeta)
+			}
 			countBuilder.Write(getFromLibraryElementDTOWithMeta(l.SQLStore.GetDialect()))
 			countBuilder.Write(` WHERE le.org_id=? AND le.folder_id=0`, signedInUser.GetOrgID())
 			writeKindSQL(query, &countBuilder)
@@ -504,7 +544,11 @@ func (l *LibraryElementService) getAllLibraryElements(c context.Context, signedI
 			writeTypeFilterSQL(typeFilter, &countBuilder)
 			countBuilder.Write(" UNION ")
 		}
-		countBuilder.Write(selectLibraryElementDTOWithMeta)
+		if l.SQLStore.GetDBType() == migrator.DM {
+			builder.Write(selectLibraryElementDTOWithMetaDM)
+		} else {
+			builder.Write(selectLibraryElementDTOWithMeta)
+		}
 		countBuilder.Write(getFromLibraryElementDTOWithMeta(l.SQLStore.GetDialect()))
 		countBuilder.Write(" INNER JOIN dashboard AS dashboard on le.folder_id = dashboard.id and le.folder_id<>0")
 		countBuilder.Write(` WHERE le.org_id=?`, signedInUser.GetOrgID())
@@ -727,12 +771,22 @@ func (l *LibraryElementService) getElementsForDashboardID(c context.Context, das
 	libraryElementMap := make(map[string]model.LibraryElementDTO)
 	err := l.SQLStore.WithDbSession(c, func(session *db.Session) error {
 		var libraryElements []model.LibraryElementWithMeta
-		sql := selectLibraryElementDTOWithMeta +
-			", coalesce(dashboard.title, 'General') AS folder_name" +
-			", coalesce(dashboard.uid, '') AS folder_uid" +
-			getFromLibraryElementDTOWithMeta(l.SQLStore.GetDialect()) +
-			" LEFT JOIN dashboard AS dashboard ON dashboard.id = le.folder_id" +
-			" INNER JOIN " + model.LibraryElementConnectionTableName + " AS lce ON lce.element_id = le.id AND lce.kind=1 AND lce.connection_id=?"
+		var sql string
+		if l.SQLStore.GetDBType() == migrator.DM {
+			sql = selectLibraryElementDTOWithMetaDM +
+				", coalesce(dashboard.title, 'General') AS folder_name" +
+				", coalesce(dashboard.uid, '') AS folder_uid" +
+				getFromLibraryElementDTOWithMeta(l.SQLStore.GetDialect()) +
+				" LEFT JOIN dashboard AS dashboard ON dashboard.id = le.folder_id" +
+				" INNER JOIN " + model.LibraryElementConnectionTableName + " AS lce ON lce.element_id = le.id AND lce.kind=1 AND lce.connection_id=?"
+		} else {
+			sql = selectLibraryElementDTOWithMeta +
+				", coalesce(dashboard.title, 'General') AS folder_name" +
+				", coalesce(dashboard.uid, '') AS folder_uid" +
+				getFromLibraryElementDTOWithMeta(l.SQLStore.GetDialect()) +
+				" LEFT JOIN dashboard AS dashboard ON dashboard.id = le.folder_id" +
+				" INNER JOIN " + model.LibraryElementConnectionTableName + " AS lce ON lce.element_id = le.id AND lce.kind=1 AND lce.connection_id=?"
+		}
 		sess := session.SQL(sql, dashboardID)
 		err := sess.Find(&libraryElements)
 		if err != nil {

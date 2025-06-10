@@ -3,6 +3,7 @@ package resourcepermissions
 import (
 	"context"
 	"fmt"
+	"github.com/grafana/grafana/pkg/services/sqlstore/migrator"
 	"strings"
 	"time"
 
@@ -305,8 +306,9 @@ func (s *store) getResourcePermissions(sess *db.Session, orgID int64, query GetR
 		p.*,
 		r.name as role_name,
 	`
-
-	userSelect := rawSelect + `
+	var userSelect string
+	if s.sql.GetDBType() == migrator.DM {
+		userSelect = rawSelect + `
 		ur.user_id AS user_id,
 		u."login" AS user_login,
 		u.is_service_account AS is_service_account,
@@ -316,6 +318,18 @@ func (s *store) getResourcePermissions(sess *db.Session, orgID int64, query GetR
 		'' AS team_email,
 		'' AS built_in_role
 	`
+	} else {
+		userSelect = rawSelect + `
+		ur.user_id AS user_id,
+		u.login AS user_login,
+		u.is_service_account AS is_service_account,
+		u.email AS user_email,
+		0 AS team_id,
+		'' AS team,
+		'' AS team_email,
+		'' AS built_in_role
+	`
+	}
 
 	teamSelect := rawSelect + `
 		0 AS user_id,
@@ -630,7 +644,9 @@ func generateNewRoleUID(sess *db.Session, orgID int64) (string, error) {
 
 func (s *store) getPermissions(sess *db.Session, resource, resourceID, resourceAttribute string, roleID int64) ([]flatResourcePermission, error) {
 	var result []flatResourcePermission
-	rawSql := `
+	var rawSql string
+	if s.sql.GetDBType() == migrator.DM {
+		rawSql = `
 	SELECT
 		p.*,
 		ur.user_id AS user_id,
@@ -650,6 +666,28 @@ func (s *store) getPermissions(sess *db.Session, resource, resourceID, resourceA
 		LEFT JOIN builtin_role br ON r.id = br.role_id
 	WHERE r.id = ? AND p.scope = ?
 	`
+	} else {
+		rawSql = `
+	SELECT
+		p.*,
+		ur.user_id AS user_id,
+		login AS user_login,
+		u.email AS user_email,
+		tr.team_id AS team_id,
+		t.name AS team,
+		t.email AS team_email,
+		r.name as role_name,
+		br.role AS built_in_role
+	FROM permission p
+		INNER JOIN role r ON p.role_id = r.id
+		LEFT JOIN team_role tr ON r.id = tr.role_id
+		LEFT JOIN team t ON tr.team_id = t.id
+		LEFT JOIN user_role ur ON r.id = ur.role_id
+		LEFT JOIN ` + s.sql.GetDialect().Quote("user") + ` u ON ur.user_id = u.id
+		LEFT JOIN builtin_role br ON r.id = br.role_id
+	WHERE r.id = ? AND p.scope = ?
+	`
+	}
 	if err := sess.SQL(rawSql, roleID, accesscontrol.Scope(resource, resourceAttribute, resourceID)).Find(&result); err != nil {
 		return nil, err
 	}

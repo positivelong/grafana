@@ -670,15 +670,27 @@ func (d *dashboardStore) deleteDashboard(cmd *dashboards.DeleteDashboardCommand,
 	} else if !has {
 		return dashboards.ErrDashboardNotFound
 	}
-
-	deletes := []string{
-		"DELETE FROM dashboard_tag WHERE dashboard_id = ? ",
-		"DELETE FROM star WHERE dashboard_id = ? ",
-		"DELETE FROM dashboard WHERE id = ?",
-		"DELETE FROM playlist_item WHERE type = 'dashboard_by_id' AND value = '?'",
-		"DELETE FROM dashboard_version WHERE dashboard_id = ?",
-		"DELETE FROM dashboard_provisioning WHERE dashboard_id = ?",
-		"DELETE FROM dashboard_acl WHERE dashboard_id = ?",
+	var deletes []string
+	if d.store.GetDBType() == migrator.DM {
+		deletes = []string{
+			"DELETE FROM dashboard_tag WHERE dashboard_id = ? ",
+			"DELETE FROM star WHERE dashboard_id = ? ",
+			"DELETE FROM dashboard WHERE id = ?",
+			"DELETE FROM playlist_item WHERE type = 'dashboard_by_id' AND value = '?'",
+			"DELETE FROM dashboard_version WHERE dashboard_id = ?",
+			"DELETE FROM dashboard_provisioning WHERE dashboard_id = ?",
+			"DELETE FROM dashboard_acl WHERE dashboard_id = ?",
+		}
+	} else {
+		deletes = []string{
+			"DELETE FROM dashboard_tag WHERE dashboard_id = ? ",
+			"DELETE FROM star WHERE dashboard_id = ? ",
+			"DELETE FROM dashboard WHERE id = ?",
+			"DELETE FROM playlist_item WHERE type = 'dashboard_by_id' AND value = ?",
+			"DELETE FROM dashboard_version WHERE dashboard_id = ?",
+			"DELETE FROM dashboard_provisioning WHERE dashboard_id = ?",
+			"DELETE FROM dashboard_acl WHERE dashboard_id = ?",
+		}
 	}
 
 	if dashboard.IsFolder {
