@@ -32,6 +32,7 @@ func AddSeedAssignmentMigrations(mg *migrator.Migrator) {
 		migrator.NewRawSQLMigration("").
 			SQLite(migSQLITERoleNameNullable).
 			Postgres("ALTER TABLE `seed_assignment` ALTER COLUMN role_name DROP NOT NULL;").
+			DM("ALTER TABLE seed_assignment MODIFY role_name VARCHAR(190) NULL;").
 			Mysql("ALTER TABLE seed_assignment MODIFY role_name VARCHAR(190) DEFAULT NULL;").
 			OceanBase("ALTER TABLE seed_assignment MODIFY role_name VARCHAR(190) DEFAULT NULL;"))
 

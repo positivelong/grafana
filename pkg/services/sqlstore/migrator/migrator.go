@@ -55,7 +55,7 @@ func NewScopedMigrator(engine *xorm.Engine, cfg *setting.Cfg, scope string) *Mig
 		migrationIds: make(map[string]struct{}),
 		Dialect:      NewDialect(engine.DriverName()),
 	}
-	if engine.DriverName() == "dm" {
+	if engine.DriverName() == DM {
 		if d, ok := mg.Dialect.(*DmDialect); ok {
 			d.Schema = engine.Dialect().URI().Schema
 		}

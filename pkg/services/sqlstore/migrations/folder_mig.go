@@ -41,6 +41,21 @@ func addFolderMigrations(mg *migrator.Migrator) {
 			INSERT INTO folder (uid, org_id, title, created, updated)
 			SELECT * FROM (SELECT uid, org_id, title, created, updated FROM dashboard WHERE is_folder = 1) AS derived
 			ON DUPLICATE KEY UPDATE title=derived.title, updated=derived.updated
+		`).DM(`
+			MERGE INTO folder dest
+USING (
+    SELECT uid, org_id, title, created, updated
+    FROM dashboard
+    WHERE is_folder = 1
+) src
+ON (dest.uid = src.uid)  -- 根据实际唯一键调整匹配条件
+WHEN MATCHED THEN
+    UPDATE SET
+        dest.title = src.title,
+        dest.updated = src.updated
+WHEN NOT MATCHED THEN
+    INSERT (uid, org_id, title, created, updated)
+    VALUES (src.uid, src.org_id, src.title, src.created, src.updated);
 		`).Postgres(`
 			INSERT INTO folder (uid, org_id, title, created, updated)
 			SELECT uid, org_id, title, created, updated FROM dashboard WHERE is_folder = true
