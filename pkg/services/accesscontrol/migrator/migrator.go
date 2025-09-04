@@ -77,6 +77,10 @@ func MigrateScopeSplit(db db.DB, log log.Logger) error {
 
 		// Batch update the permissions
 		if errBatchUpdate := db.GetSqlxSession().WithTransaction(ctx, func(tx *session.SessionTx) error {
+			if _, errDel := tx.Exec(ctx, `SET IDENTITY_INSERT "permission" ON`); errDel != nil {
+				log.Error("Error SET IDENTITY_INSERT permission ON", "migration", "scopeSplit", "error", errDel)
+				return errDel
+			}
 			if _, errDel := tx.Exec(ctx, delQuery, delArgs...); errDel != nil {
 				log.Error("Error deleting permissions", "migration", "scopeSplit", "error", errDel)
 				return errDel
