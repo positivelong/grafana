@@ -250,7 +250,34 @@ func (r *xormRepositoryImpl) Get(ctx context.Context, query annotations.ItemQuer
 	params := make([]interface{}, 0)
 	items := make([]*annotations.ItemDTO, 0)
 	err := r.db.WithDbSession(ctx, func(sess *db.Session) error {
-		sql.WriteString(`
+		var querySql string
+		if r.db.GetDialect().DriverName() == migrator.DM {
+			querySql = `
+			SELECT
+				annotation.id,
+				annotation.epoch as time,
+				annotation.epoch_end as time_end,
+				annotation.dashboard_id,
+				annotation.panel_id,
+				annotation.new_state,
+				annotation.prev_state,
+				annotation.alert_id,
+				annotation.text,
+				annotation.tags,
+				annotation.data,
+				annotation.created,
+				annotation.updated,
+				usr.email,
+				usr."login",
+				alert.name as alert_name
+			FROM annotation
+			LEFT OUTER JOIN ` + r.db.GetDialect().Quote("user") + ` as usr on usr.id = annotation.user_id
+			LEFT OUTER JOIN alert on alert.id = annotation.alert_id
+			INNER JOIN (
+				SELECT a.id from annotation a
+			`
+		} else {
+			querySql = `
 			SELECT
 				annotation.id,
 				annotation.epoch as time,
@@ -273,7 +300,9 @@ func (r *xormRepositoryImpl) Get(ctx context.Context, query annotations.ItemQuer
 			LEFT OUTER JOIN alert on alert.id = annotation.alert_id
 			INNER JOIN (
 				SELECT a.id from annotation a
-			`)
+			`
+		}
+		sql.WriteString(querySql)
 
 		sql.WriteString(`WHERE a.org_id = ?`)
 		params = append(params, query.OrgID)
