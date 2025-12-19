@@ -29,7 +29,7 @@ SELECT DISTINCT
 
 	selectLibraryElementDTOWithMetaForDM = `
 SELECT DISTINCT
-	le.name, le.id, le.org_id, le.folder_id, le.uid, le.kind, le.type, le.description, le.model, le.created, le.created_by, le.updated, le.updated_by, le.version
+	le.name, le.id, le.org_id, le.folder_id, le.uid, le.kind, le.type, le.description, le."model", le.created, le.created_by, le.updated, le.updated_by, le.version
 	, u1."login" AS created_by_name
 	, u1.email AS created_by_email
 	, u2."login" AS updated_by_name
